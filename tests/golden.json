@@ -278,7 +278,7 @@
   "⟨children{The} ‖ ran{outside}⟩"
  ],
  "We hold these truths to be self-evident.": [
-  "⟨We ‖ hold{INF(to be \\ self)} | truths{these} \\OC evident⟩"
+  "⟨We ‖ hold | truths{these} \\OC INF(to be \\ self-evident)⟩"
  ],
  "It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.": [
   "⟨It(=NC(that: ⟨man{a, single, PP(in possession{PP(of fortune{a, good})})} ‖ must be{PP(in want{PP(of wife{a})})}⟩)) ‖ is \\ truth{a, PART(acknowledged{universally})}⟩"

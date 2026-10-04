@@ -93,7 +93,13 @@ export function tagText(text, overrides = {}) {
     let raw = '';
     const terms = sen.terms;
     for (let ti = 0; ti < terms.length; ti++) {
-      const t = terms[ti];
+      let t = terms[ti];
+      // compromise splits "self-evident" in two; join hyphenated words back into one
+      while (t.post === '-' && terms[ti + 1] && !terms[ti + 1].pre && terms[ti + 1].text) {
+        const nx = terms[ti + 1];
+        t = { ...nx, text: `${t.text}-${nx.text}`, normal: `${t.normal || t.text}-${nx.normal || nx.text}`.toLowerCase(), implicit: undefined, pre: t.pre, root: undefined };
+        ti++;
+      }
       const nx = terms[ti + 1], nx2 = terms[ti + 2];
       if (t.implicit && /^[A-Za-z]+['’]s$/.test(t.text || '') && nx && !nx.text && /^(is|has)$/.test(nx.implicit || '') && nx2 &&
         !/^(it|that|what|there|here|he|she|who|let|where|how|when|why|this|everyone|everybody|someone|somebody|nobody|one)$/i.test(t.implicit) &&

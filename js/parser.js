@@ -38,7 +38,7 @@ const INF_OBJ = set(`want need like love hate try begin start decide hope plan l
 const GER_OBJ = set(`enjoy like love hate stop start begin finish avoid keep mind miss practice practise consider suggest quit imagine risk
   deny admit appreciate delay discuss dislike postpone recall recommend regret resent resist tolerate understand prefer
   remember forget try continue fancy`);
-const OBJ_INF = set(`tell ask want allow expect order invite help force persuade encourage urge teach remind warn advise need like cause
+const OBJ_INF = set(`hold believe consider find think declare judge know suppose presume deem tell ask want allow expect order invite help force persuade encourage urge teach remind warn advise need like cause
   get enable permit require beg command forbid instruct oblige compel tempt train challenge dare wish prefer`);
 const BARE_INF = set('let make help have watch see hear feel notice bid');
 const CLAUSE_VERBS = set(`say think know believe hope wish feel realize realise notice see hear suppose guess understand remember forget
@@ -916,7 +916,7 @@ export class Parser {
           verb.mods.push(pp);
           continue;
         }
-        if (pp && pp.kind === 'word') { verb.mods.push(pp); continue; }
+        if (pp && (pp.kind === 'word' || pp.kind === 'advclause')) { verb.mods.push(pp); continue; }
         this.i = save;
         break;
       }
@@ -1049,6 +1049,8 @@ export class Parser {
     }
     // "as quickly as possible"
     if (t.lower !== 'as' && this.peek().pos === 'THAN') {
+      const tc = this.thanClause();
+      if (tc) { w.mods.push(tc); return w; }
       const th = this.next();
       const obj = this.parseNPList('pobj');
       if (obj) w.mods.push({ kind: 'pp', id: nid(), prep: W(th, 'preposition'), obj });
@@ -1103,7 +1105,7 @@ export class Parser {
       if ((n.pos === 'PREP' && ADJ_PREPS.has(n.lower)) || n.pos === 'THAN') {
         const save = this.i;
         const pp = this.parsePP();
-        if (pp && pp.kind === 'pp' && pp.obj) { adj.mods.push(pp); continue; }
+        if (pp && ((pp.kind === 'pp' && pp.obj) || pp.kind === 'advclause')) { adj.mods.push(pp); continue; }
         this.i = save;
         break;
       }
@@ -1442,7 +1444,20 @@ export class Parser {
     return false;
   }
 
+  // "than words can say", "than I am": a comparative clause, often elliptical
+  thanClause() {
+    if (this.peek().pos !== 'THAN' || !this.clauseAhead(1)) return null;
+    const save = this.i;
+    const conj = W(this.next(), 'conjunction');
+    const clause = this.parseClause({ sub: true, noQuestion: true });
+    if (clause && clause.preds.length && !clause.subject.understood) return { kind: 'advclause', id: nid(), conj, clause };
+    this.i = save;
+    return null;
+  }
+
   parsePP() {
+    const tc = this.thanClause();
+    if (tc) return tc;
     const start = this.i;
     const seq = this.matchSeq(MULTI_PREP);
     let prepText;
