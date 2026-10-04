@@ -155,4 +155,7 @@ export const SPECIMENS = [
  "A thing of beauty is a joy for ever…",
  "We are all in the gutter, but some of us are looking at the stars.",
  "I can resist everything except temptation.",
+ "I know that the man who called is here.",
+ "I think the book that you lent me is lost.",
+ "She said that the dog which barked was hers.",
 ]

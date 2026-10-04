@@ -470,6 +470,15 @@
  "I can resist everything except temptation.": [
   "⟨I ‖ can resist{PP(except temptation)} | everything⟩"
  ],
+ "I know that the man who called is here.": [
+  "⟨I ‖ know | NC(that: ⟨man{the, REL(⟨who ‖ called⟩)} ‖ is{here}⟩)⟩"
+ ],
+ "I think the book that you lent me is lost.": [
+  "⟨I ‖ think | NC(⟨book{the, REL(⟨you ‖ lent IO:me | that⟩)} ‖ is \\ lost⟩)⟩"
+ ],
+ "She said that the dog which barked was hers.": [
+  "⟨She ‖ said | NC(that: ⟨dog{the, REL(⟨which ‖ barked⟩)} ‖ was \\ hers⟩)⟩"
+ ],
  "": [],
  "   ": [],
  "...": [

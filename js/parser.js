@@ -142,6 +142,17 @@ export class Parser {
         }
         if (this.isComma() && this.verbStart(1)) this.i++;
         if (this.verbStart()) r = true;
+        // the subject may carry a relative clause: "the man who called is here" has two finite verbs ahead
+        else if (/^(who|whom|which|that|whose)$/.test(this.peek().lower)) {
+          let finite = 0;
+          for (let j = this.i + 1; j < this.t.length; j++) {
+            const x = this.t[j];
+            if (x.pos === 'PUNCT' && x.text !== ',') break;
+            if (x.pos === 'CCONJ' || x.pos === 'SCONJ') break;
+            if (this.isFiniteTok(x) && !(j > 0 && ['AUX', 'MODAL'].includes(this.t[j - 1].pos))) finite++;
+          }
+          r = finite >= 2;
+        }
       }
     } catch (e) { r = false; }
     this.i = save;
