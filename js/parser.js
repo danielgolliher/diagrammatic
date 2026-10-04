@@ -317,6 +317,7 @@ export class Parser {
         const nx = this.peek(1);
         if (t.lower === 'please' && (nx.pos === 'VERB' || nx.pos === 'AUX')) { pre.push(W(this.next(), 'adverb')); continue; }
         if (nx.pos === 'ADJ' && !this.isComma(1)) break;
+        if (nx.pos === 'CCONJ' && this.peek(2).pos === 'ADV') { pre.push(this.parseAdverb()); continue; }
         if (this.isComma(1) || this.npStart(1) || nx.pos === 'EX' || nx.pos === 'VERB' || (nx.pos === 'AUX' && t.lower !== 'not')) {
           if (nx.pos === 'VERB' || nx.pos === 'AUX' || nx.pos === 'MODAL') break;
           pre.push(this.parseAdverb());
@@ -472,6 +473,7 @@ export class Parser {
     if (t.pos === 'AUX' && t.lower === 'be' && !this.npStart(1)) return true;
     if (t.pos === 'AUX' && t.lower === 'be' && ['ADJ', 'DET', 'ADV'].includes(this.peek(1).pos)) return true;
     if (t.lower === 'please') return true;
+    if ((t.pos === 'ADV' || t.pos === 'NEG') && /^(never|always|just|kindly|now|then|first|simply|quickly|slowly|gently|carefully|please|still|do)$/i.test(t.lower) && (this.peek(1).pos === 'VERB' && this.peek(1).form === 'base' || this.peek(1).lower === 'be')) return true;
     if (t.pos === 'AUX' && t.lower === 'have' && this.npStart(1) && ['DET', 'POSS', 'ADJ'].includes(this.peek(1).pos) && this.i === 0 && false) return true;
     return false;
   }
@@ -818,6 +820,12 @@ export class Parser {
         if (np) { pred.comp = np; pred.compType = 'pn'; continue; }
         this.i = save;
       }
+      if (!pred.comp && pred.passive && (OC_ALWAYS.has(lemma) || OC_IF_BARE.has(lemma)) && this.npStart() && !(t.pos === 'PRON')) {
+        const save = this.i;
+        const np = this.parseNPList('pn');
+        if (np) { pred.comp = np; pred.compType = 'pn'; continue; }
+        this.i = save;
+      }
       // a linking-adj verb followed by an adjective-noun ("feel the cloth") falls through to objects
       const transitiveOK = !pred.comp && !pred.passive && !pred.linking;
 
@@ -1021,11 +1029,21 @@ export class Parser {
   }
 
   parseAdverb() {
+    const first = this.parseAdverb1();
+    if (this.peek().pos === 'CCONJ' && ['and', 'or', 'but', 'yet'].includes(this.peek().lower) && this.peek(1).pos === 'ADV' && !['not', 'never'].includes(this.peek(1).lower)) {
+      const c = this.next().text;
+      const second = this.parseAdverb1();
+      return { kind: 'compound', id: nid(), items: [first, second], conj: c };
+    }
+    return first;
+  }
+
+  parseAdverb1() {
     const t = this.next();
     const w = W(t, 'adverb');
     // adverb modifying adverb: "very quickly"
     if (['very', 'too', 'so', 'quite', 'rather', 'most', 'more', 'less', 'least', 'extremely', 'really', 'almost', 'nearly', 'how', 'as', 'just', 'right', 'far', 'much', 'pretty'].includes(t.lower) && this.peek().pos === 'ADV' && !['not', 'never'].includes(this.peek().lower)) {
-      const head = this.parseAdverb();
+      const head = this.parseAdverb1();
       head.mods.unshift(w);
       return head;
     }
@@ -1222,7 +1240,7 @@ export class Parser {
       }
       if (k.pos === 'ADJ') {
         // stop if this adjective is actually a predicate adjective ("the man happy"?) — rare; accept
-        if (!['NOUN', 'PROPN', 'ADJ', 'NUM', 'CCONJ', 'VERB', 'PUNCT'].includes(this.peek(1).pos) && !(this.peek(1).pos === 'CCONJ')) {
+        if (!['NOUN', 'PROPN', 'ADJ', 'NUM', 'CCONJ', 'VERB', 'PUNCT', 'POSS'].includes(this.peek(1).pos) && !(this.peek(1).pos === 'CCONJ')) {
           // bare adjective as head: "the rich", "the poor"
           if (pre.length && pre[pre.length - 1].role === 'article' && ctx !== 'probe') {
             this.i++;
@@ -1361,7 +1379,7 @@ export class Parser {
         this.i = save;
       }
       // participial phrase
-      const pastPart = t.form === 'pastpp' && (this.peek(1).lower === 'by' || (isNoun && ctx === 'subj' && this.peek(1).pos === 'PREP' && !CLAUSE_VERBS.has(t.lemma || t.root) && this.laterFinite(2)));
+      const pastPart = t.form === 'pastpp' && isNoun && ((this.peek(1).lower === 'by' && (ctx !== 'subj' || this.laterFinite(2))) || (ctx === 'subj' && this.peek(1).pos === 'PREP' && !CLAUSE_VERBS.has(t.lemma || t.root) && this.laterFinite(2)));
       if (t.pos === 'VERB' && ((t.form === 'ing' && (isNoun || ctx !== 'subj')) || (t.form === 'pp' && isNoun) || pastPart)) {
         if (!(ctx === 'subj' && t.form === 'ing' && false)) {
           const save = this.i;

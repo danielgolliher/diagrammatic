@@ -173,6 +173,78 @@
  "the big red dog": [
   "FRAG(dog{the, big, red})"
  ],
+ "The sun gives light.": [
+  "⟨sun{The} ‖ gives | light⟩"
+ ],
+ "Birds of beautiful plumage sing in the groves.": [
+  "⟨Birds{PP(of plumage{beautiful})} ‖ sing{PP(in groves{the})}⟩"
+ ],
+ "The old man's daughter is very beautiful.": [
+  "⟨daughter{man's{The, old}} ‖ is \\ beautiful{very}⟩"
+ ],
+ "Time and tide wait for no man.": [
+  "⟨[Time and tide] ‖ wait{PP(for man{no})}⟩"
+ ],
+ "Honesty is the best policy.": [
+  "⟨Honesty ‖ is \\ policy{the, best}⟩"
+ ],
+ "He that runs may read.": [
+  "⟨He{REL(⟨that ‖ runs⟩)} ‖ may read⟩"
+ ],
+ "Every pupil should study his lesson carefully.": [
+  "⟨pupil{Every} ‖ should study{carefully} | lesson{his}⟩"
+ ],
+ "Slowly and silently the snow fell.": [
+  "⟨snow{the} ‖ fell{[Slowly and silently]}⟩"
+ ],
+ "The leaves of the trees were turning red and gold.": [
+  "⟨leaves{The, PP(of trees{the})} ‖ were turning \\ [red and gold]⟩"
+ ],
+ "We sat by the fire and told stories until midnight.": [
+  "⟨We ‖ sat{PP(by fire{the})} &and& told{PP(until midnight)} | stories⟩"
+ ],
+ "The man whom you saw is my uncle.": [
+  "⟨man{The, REL(⟨you ‖ saw | whom⟩)} ‖ is \\ uncle{my}⟩"
+ ],
+ "I do not know why he left.": [
+  "⟨I ‖ do know{not} | NC(⟨he ‖ left{why}⟩)⟩"
+ ],
+ "She sings beautifully, but she cannot dance.": [
+  "⟨She ‖ sings{beautifully}⟩ ‖but‖ ⟨she ‖ can dance{not}⟩"
+ ],
+ "After the storm had passed, the children ran outside to play.": [
+  "⟨children{the} ‖ ran{ADV(After: ⟨storm{the} ‖ had passed⟩), outside, INF(to play)}⟩"
+ ],
+ "Are you coming with us?": [
+  "⟨you ‖ Are coming{PP(with us)}⟩"
+ ],
+ "Never give up.": [
+  "⟨(you) ‖ give up{Never}⟩"
+ ],
+ "He was elected president of the society.": [
+  "⟨He ‖ was elected \\ president{PP(of society{the})}⟩"
+ ],
+ "The old man the boats.": [
+  "⟨old{The} ‖ man | boats{the}⟩"
+ ],
+ "Swimming is fun.": [
+  "⟨GER(Swimming) ‖ is \\ fun⟩"
+ ],
+ "Reading books is fun.": [
+  "⟨GER(Reading | books) ‖ is \\ fun⟩"
+ ],
+ "The only thing we have to fear is fear itself.": [
+  "⟨thing{The, only, REL(⟨we ‖ have | INF(to fear | (that))⟩)} ‖ is \\ fear(=itself)⟩"
+ ],
+ "To be or not to be, that is the question.": [
+  "⟨that(=[INF(to be) or INF(to be{not})]) ‖ is \\ question{the}⟩"
+ ],
+ "All that glitters is not gold.": [
+  "⟨All{REL(⟨that ‖ glitters⟩)} ‖ is{not} \\ gold⟩"
+ ],
+ "Having finished his work, he went home.": [
+  "⟨he{PART(Having finished | work{his})} ‖ went{home}⟩"
+ ],
  "": [],
  "   ": [],
  "...": [
@@ -211,14 +283,8 @@
  "It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.": [
   "⟨It(=NC(that: ⟨man{a, single, PP(in possession{PP(of fortune{a, good})})} ‖ must be{PP(in want{PP(of wife{a})})}⟩)) ‖ is \\ truth{a, PART(acknowledged{universally})}⟩"
  ],
- "The only thing we have to fear is fear itself.": [
-  "⟨thing{The, only, REL(⟨we ‖ have | INF(to fear | (that))⟩)} ‖ is \\ fear(=itself)⟩"
- ],
  "Ask not what your country can do for you; ask what you can do for your country.": [
   "⟨(you) ‖ Ask{not} | NC(⟨country{your} ‖ can do{PP(for you)} | what⟩)⟩ ‖‖ ⟨(you) ‖ ask | NC(⟨you ‖ can do{PP(for country{your})} | what⟩)⟩"
- ],
- "To be or not to be, that is the question.": [
-  "⟨that(=[INF(to be) or INF(to be{not})]) ‖ is \\ question{the}⟩"
  ],
  "Happy families are all alike; every unhappy family is unhappy in its own way.": [
   "⟨families{Happy} ‖ are \\ alike{all}⟩ ‖‖ ⟨family{every, unhappy} ‖ is{PP(in way{its, own})} \\ unhappy⟩"
@@ -283,9 +349,6 @@
  "A stitch in time saves nine.": [
   "⟨stitch{A, PP(in time)} ‖ saves | nine⟩"
  ],
- "All that glitters is not gold.": [
-  "⟨All{REL(⟨that ‖ glitters⟩)} ‖ is{not} \\ gold⟩"
- ],
  "The quality of mercy is not strained.": [
   "⟨quality{The, PP(of mercy)} ‖ is strained{not}⟩"
  ],
@@ -306,9 +369,6 @@
  ],
  "They watched the sun set over the mountains.": [
   "⟨They ‖ watched{PP(over mountains{the})} | set{the, sun}⟩"
- ],
- "Having finished his work, he went home.": [
-  "⟨he{PART(Having finished | work{his})} ‖ went{home}⟩"
  ],
  "I saw a man with a telescope.": [
   "⟨I ‖ saw | man{a, PP(with telescope{a})}⟩"
