@@ -1737,15 +1737,19 @@ function variants(tokens) {
 export function parseSentence(tokens, end) {
   try {
     let best = parseOnce(tokens, end);
+    let bestToks = tokens;
     let bestScore = badness(best, 0);
     if (bestScore > 0) {
       for (const v of variants(tokens)) {
         let s;
-        try { s = parseOnce(retag(tokens, v.forced), end); } catch (e) { continue; }
+        const toks = retag(tokens, v.forced);
+        try { s = parseOnce(toks, end); } catch (e) { continue; }
         const sc = badness(s, v.cost);
-        if (sc < bestScore) { best = s; bestScore = sc; }
+        if (sc < bestScore) { best = s; bestScore = sc; bestToks = toks; }
       }
     }
+    // the reading actually used, for the parsing table
+    if (best) best.tokens = bestToks.map(t => (t.userPos && !tokens[t.i]?.userPos ? { ...t, userPos: undefined } : t));
     return best;
   } catch (e) {
     console.error(e);

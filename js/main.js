@@ -178,7 +178,7 @@ function render(text, { keepOverrides = false } = {}) {
       an.innerHTML = `<p><span class="head">Analysis.</span> — ${analyse(tree)}</p>`;
       plate.appendChild(an);
     }
-    plate.appendChild(parsingTable(sen, si));
+    plate.appendChild(parsingTable(sen, si, tree));
     plates.appendChild(plate);
     const svgEl = inner.querySelector('svg');
     if (svgEl && svgOut) sizeSVG(svgEl, svgOut.width);
@@ -197,7 +197,8 @@ window.addEventListener('resize', () => {
   document.querySelectorAll('.plate-inner svg').forEach(svg => sizeSVG(svg, +svg.getAttribute('width')));
 });
 
-function parsingTable(sen, si) {
+function parsingTable(sen, si, tree) {
+  const tokens = (tree && tree.tokens) || sen.tokens;
   const det = document.createElement('details');
   det.className = 'parsing';
   const changed = Object.keys(overrides).some(k => k.startsWith(si + ':'));
@@ -205,7 +206,7 @@ function parsingTable(sen, si) {
   det.innerHTML = '<summary>Parsing — correct a part of speech</summary>';
   const grid = document.createElement('div');
   grid.className = 'parse-grid';
-  for (const t of sen.tokens) {
+  for (const t of tokens) {
     if (t.pos === 'PUNCT') continue;
     const cell = document.createElement('div');
     cell.className = 'pword' + (t.userPos ? ' changed' : '');
