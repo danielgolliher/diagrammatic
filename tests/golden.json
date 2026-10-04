@@ -245,6 +245,231 @@
  "Having finished his work, he went home.": [
   "⟨he{PART(Having finished | work{his})} ‖ went{home}⟩"
  ],
+ "We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness.": [
+  "⟨We ‖ hold | truths(=[NC(that: ⟨men{all} ‖ are created \\ equal⟩)  NC(that: ⟨they ‖ are endowed{PP(by Creator{their}), PP(with Rights{certain, unalienable})}⟩)  NC(that: ⟨[Life and Liberty and pursuit{the, PP(of Happiness)}] ‖ are{PP(among these)}⟩)]){these} \\OC INF(to be \\ self-evident)⟩"
+ ],
+ "And for the support of this Declaration, with a firm reliance on the protection of divine Providence, we mutually pledge to each other our Lives, our Fortunes and our sacred Honor.": [
+  "[CONJ:And] ⟨we ‖ pledge{PP(for support{the, PP(of Declaration{this})}), PP(with reliance{a, firm}), PP(on protection{the, PP(of Providence{divine})}), mutually, PP(to each other)} | [Lives{our} and Fortunes{our} and Honor{our, sacred}]⟩"
+ ],
+ "We the People of the United States, in Order to form a more perfect Union, establish Justice, insure domestic Tranquility, provide for the common defence, promote the general Welfare, and secure the Blessings of Liberty to ourselves and our Posterity, do ordain and establish this Constitution for the United States of America.": [
+  "⟨We(=People{the, PP(of United States{the})}) ‖ [do ordain and establish{INF(to form | Union{a, perfect{more}} &and& establish | Justice &and& insure | Tranquility{domestic} &and& provide{PP(for defence{the, common})} &and& promote | Welfare{the, general} &and& secure{PP(to [ourselves and Posterity{our}])} | Blessings{the, PP(of Liberty)}), PP(for United States{the, PP(of America)})}] | Constitution{this}⟩"
+ ],
+ "All legislative Powers herein granted shall be vested in a Congress of the United States, which shall consist of a Senate and House of Representatives.": [
+  "⟨Powers{All, legislative, PART(granted{herein})} ‖ shall be vested{PP(in Congress{a, PP(of United States{the, REL(⟨which ‖ shall consist{PP(of [Senate{a} and House{PP(of Representatives)}])}⟩)})})}⟩"
+ ],
+ "The executive Power shall be vested in a President of the United States of America.": [
+  "⟨Power{The, executive} ‖ shall be vested{PP(in President{a, PP(of United States{the, PP(of America)})})}⟩"
+ ],
+ "The judicial Power of the United States, shall be vested in one supreme Court, and in such inferior Courts as the Congress may from time to time ordain and establish.": [
+  "⟨Power{The, judicial, PP(of United States{the})} ‖ shall be vested{[PP(in Court{one, supreme}) and PP(in Courts{such, inferior, REL(⟨Congress{the} ‖ [may ordain{from time to time} and establish] | as⟩)})]}⟩"
+ ],
+ "The enumeration in the Constitution, of certain rights, shall not be construed to deny or disparage others retained by the people.": [
+  "⟨enumeration{The, PP(in Constitution{the}), PP(of rights{certain})} ‖ shall be construed{not, INF(to [deny or disparage] | others{PART(retained{PP(by people{the})})})}⟩"
+ ],
+ "The right of citizens of the United States to vote shall not be denied or abridged by the United States or by any State on account of sex.": [
+  "⟨right{The, PP(of citizens{PP(of United States{the})}), INF(to vote)} ‖ shall be denied{not} &or& abridged{[PP(by United States{the}) or PP(by State{any})], PP(on account of sex)}⟩"
+ ],
+ "If men were angels, no government would be necessary.": [
+  "⟨government{no} ‖ would be{ADV(If: ⟨men ‖ were \\ angels⟩)} \\ necessary⟩"
+ ],
+ "Ambition must be made to counteract ambition.": [
+  "⟨Ambition ‖ must be made{INF(to counteract | ambition)}⟩"
+ ],
+ "Justice is the end of government.": [
+  "⟨Justice ‖ is \\ end{the, PP(of government)}⟩"
+ ],
+ "These are the times that try men's souls.": [
+  "⟨These ‖ are \\ times{the, REL(⟨that ‖ try | souls{men's}⟩)}⟩"
+ ],
+ "Tyranny, like hell, is not easily conquered…": [
+  "⟨Tyranny ‖ is conquered{PP(like hell), not, easily}⟩"
+ ],
+ "We have it in our power to begin the world over again.": [
+  "⟨We ‖ have{PP(in power{our, INF(to begin{over, again} | world{the})})} | it⟩"
+ ],
+ "Time makes more converts than reason.": [
+  "⟨Time ‖ makes{PP(than reason)} | converts{more}⟩"
+ ],
+ "Society in every state is a blessing, but government even in its best state is but a necessary evil…": [
+  "⟨Society{PP(in state{every})} ‖ is \\ blessing{a}⟩ ‖but‖ ⟨government ‖ is{even, PP(in state{its, best}), but} \\ evil{a, necessary}⟩"
+ ],
+ "Observe good faith and justice towards all nations; cultivate peace and harmony with all.": [
+  "⟨(you) ‖ Observe{PP(towards nations{all})} | [faith{good} and justice]⟩ ‖‖ ⟨(you) ‖ cultivate{PP(with all)} | [peace and harmony]⟩"
+ ],
+ "The world will little note, nor long remember what we say here, but it can never forget what they did here.": [
+  "⟨world{The} ‖ will note{little} &nor& remember{long} | NC(⟨we ‖ say{here} | what⟩)⟩ ‖but‖ ⟨it ‖ can forget{never} | NC(⟨they ‖ did{here} | what⟩)⟩"
+ ],
+ "A house divided against itself cannot stand.": [
+  "⟨house{A, PART(divided{PP(against itself)})} ‖ can stand{not}⟩"
+ ],
+ "You have seen how a man was made a slave; you shall see how a slave was made a man.": [
+  "⟨You ‖ have seen | NC(⟨man{a} ‖ was made{how} \\ slave{a}⟩)⟩ ‖‖ ⟨you ‖ shall see | NC(⟨slave{a} ‖ was made{how} \\ man{a}⟩)⟩"
+ ],
+ "Heaven is under our feet as well as over our heads.": [
+  "⟨Heaven ‖ is{[PP(under feet{our}) as well as PP(over heads{our})]}⟩"
+ ],
+ "I went to the woods because I wished to live deliberately…": [
+  "⟨I ‖ went{PP(to woods{the}), ADV(because: ⟨I ‖ wished | INF(to live{deliberately})⟩)}⟩"
+ ],
+ "The mass of men lead lives of quiet desperation.": [
+  "⟨mass{The, PP(of men)} ‖ lead | lives{PP(of desperation{quiet})}⟩"
+ ],
+ "Trust thyself: every heart vibrates to that iron string.": [
+  "⟨(you) ‖ Trust | thyself⟩ ‖‖ ⟨heart{every} ‖ vibrates{PP(to string{that, iron})}⟩"
+ ],
+ "Nothing can bring you peace but yourself.": [
+  "⟨Nothing ‖ can bring{PP(but yourself)} IO:you | peace⟩"
+ ],
+ "To be great is to be misunderstood.": [
+  "⟨INF(to be \\ great) ‖ is \\ INF(to be misunderstood)⟩"
+ ],
+ "A foolish consistency is the hobgoblin of little minds…": [
+  "⟨consistency{A, foolish} ‖ is \\ hobgoblin{the, PP(of minds{little})}⟩"
+ ],
+ "I would prefer not to.": [
+  "⟨I ‖ would prefer{not, to}⟩"
+ ],
+ "I celebrate myself, and sing myself…": [
+  "⟨I ‖ celebrate | myself &and& sing | myself⟩"
+ ],
+ "It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.": [
+  "⟨It(=NC(that: ⟨man{a, single, PP(in possession{PP(of fortune{a, good})})} ‖ must be{PP(in want{PP(of wife{a})})}⟩)) ‖ is \\ truth{a, PART(acknowledged{universally})}⟩"
+ ],
+ "Happy families are all alike; every unhappy family is unhappy in its own way.": [
+  "⟨families{Happy} ‖ are \\ alike{all}⟩ ‖‖ ⟨family{every, unhappy} ‖ is{PP(in way{its, own})} \\ unhappy⟩"
+ ],
+ "It was the best of times, it was the worst of times…": [
+  "⟨It ‖ was \\ best{the, PP(of times)}⟩ ‖‖ ⟨it ‖ was \\ worst{the, PP(of times)}⟩"
+ ],
+ "All children, except one, grow up.": [
+  "⟨children{All} ‖ grow up{PP(except one)}⟩"
+ ],
+ "Marley was dead: to begin with.": [
+  "⟨Marley ‖ was{INF(to begin{with})} \\ dead⟩"
+ ],
+ "There was no possibility of taking a walk that day.": [
+  "⟨EX:There possibility{no, PP(of GER(taking{PP(· day{that})} | walk{a}))} ‖ was⟩"
+ ],
+ "It was a dark and stormy night…": [
+  "⟨It ‖ was \\ night{a, [dark and stormy]}⟩"
+ ],
+ "In my younger and more vulnerable years my father gave me some advice that I've been turning over in my mind ever since.": [
+  "⟨father{my} ‖ gave{PP(In years{my, [younger and vulnerable{more}]})} IO:me | advice{some, REL(⟨I ‖ have been turning over{PP(in mind{my}), ever, since} | that⟩)}⟩"
+ ],
+ "Mrs. Dalloway said she would buy the flowers herself.": [
+  "⟨Mrs Dalloway ‖ said | NC(⟨she(=herself) ‖ would buy | flowers{the}⟩)⟩"
+ ],
+ "In the late summer of that year we lived in a house in a village that looked across the river and the plain to the mountains.": [
+  "⟨we ‖ lived{PP(In summer{the, late, PP(of year{that})}), PP(in house{a}), PP(in village{a, REL(⟨that ‖ looked{PP(across [river{the} and plain{the}]), PP(to mountains{the})}⟩)})}⟩"
+ ],
+ "Through the fence, between the curling flower spaces, I could see them hitting.": [
+  "⟨I ‖ could see{PP(Through fence{the}), PP(between spaces{the, curling, flower})} | them{PART(hitting)}⟩"
+ ],
+ "The Mole had been working very hard all the morning, spring-cleaning his little home.": [
+  "⟨Mole{The} ‖ had been working{very, PP(· morning{all, the}), PART(spring-cleaning | home{his, little})} \\ hard⟩"
+ ],
+ "Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do…": [
+  "⟨Alice ‖ was beginning | INF(to get \\ tired{very, [PP(of GER(sitting{PP(by sister{her}), PP(on bank{the})})) and PP(of GER(having{INF(to do)} | nothing))]})⟩"
+ ],
+ "You will rejoice to hear that no disaster has accompanied the commencement of an enterprise which you have regarded with such evil forebodings.": [
+  "⟨You ‖ will rejoice{INF(to hear | NC(that: ⟨disaster{no} ‖ has accompanied | commencement{the, PP(of enterprise{an, REL(⟨you ‖ have regarded{PP(with forebodings{such, evil})} | which⟩)})}⟩))}⟩"
+ ],
+ "Miss Brooke had that kind of beauty which seems to be thrown into relief by poor dress.": [
+  "⟨Miss Brooke ‖ had | kind{that, PP(of beauty{REL(⟨which ‖ seems \\ INF(to be thrown{PP(into relief), PP(by dress{poor})})⟩)})}⟩"
+ ],
+ "The studio was filled with the rich odour of roses…": [
+  "⟨studio{The} ‖ was filled{PP(with odour{the, rich, PP(of roses)})}⟩"
+ ],
+ "Christmas won't be Christmas without any presents…": [
+  "⟨Christmas ‖ will be{not} \\ Christmas{PP(without presents{any})}⟩"
+ ],
+ "Reader, I married him.": [
+  "[VOC:Reader] ⟨I ‖ married | him⟩"
+ ],
+ "I am no bird; and no net ensnares me…": [
+  "⟨I ‖ am \\ bird{no}⟩ ‖and‖ ⟨net{no} ‖ ensnares | me⟩"
+ ],
+ "I would always rather be happy than dignified…": [
+  "⟨I ‖ would be{always, rather} \\ happy{PP(than dignified)}⟩"
+ ],
+ "Whatever our souls are made of, his and mine are the same…": [
+  "⟨[his and mine] ‖ are{ADV(: ⟨souls{our} ‖ are made{PP(of Whatever)}⟩)} \\ same{the}⟩"
+ ],
+ "I declare, after all, there is no enjoyment like reading!": [
+  "⟨I ‖ declare{PP(after all)} | NC(⟨EX:there enjoyment{no, PP(like GER(reading))} ‖ is⟩)⟩"
+ ],
+ "I could easily forgive his pride, if he had not mortified mine.": [
+  "⟨I ‖ could forgive{easily, ADV(if: ⟨he ‖ had mortified{not} | mine⟩)} | pride{his}⟩"
+ ],
+ "There is no charm equal to tenderness of heart…": [
+  "⟨EX:There charm{no, equal{PP(to tenderness{PP(of heart)})}} ‖ is⟩"
+ ],
+ "You pierce my soul.": [
+  "⟨You ‖ pierce | soul{my}⟩"
+ ],
+ "It is not down in any map; true places never are.": [
+  "⟨It ‖ is{not, down, PP(in map{any})}⟩ ‖‖ ⟨places{true} ‖ are{never}⟩"
+ ],
+ "It is a far, far better thing that I do, than I have ever done; it is a far, far better rest that I go to than I have ever known.": [
+  "⟨It ‖ is{ADV(than: ⟨I ‖ have{ever} | done⟩)} \\ thing{a, better{far, far}, REL(⟨I ‖ do | that⟩)}⟩ ‖‖ ⟨it ‖ is \\ rest{a, better{far, far}, REL(⟨I ‖ go{PP(to that), ADV(than: ⟨I ‖ have known{ever}⟩)}⟩)}⟩"
+ ],
+ "I loved her against reason, against promise, against peace, against hope, against happiness, against all discouragement that could be.": [
+  "⟨I ‖ loved{PP(against reason), PP(against promise), PP(against peace), PP(against hope), PP(against happiness), PP(against discouragement{all, REL(⟨that ‖ could be⟩)})} | her⟩"
+ ],
+ "Why, sometimes I've believed as many as six impossible things before breakfast.": [
+  "[INTJ:Why] ⟨I ‖ have believed{sometimes, PP(before breakfast)} | things{six{as many as}, impossible}⟩"
+ ],
+ "We're all mad here.": [
+  "⟨We ‖ are{here} \\ mad{all}⟩"
+ ],
+ "Beware, for I am fearless and therefore powerful.": [
+  "⟨(you) ‖ Beware⟩ ‖for‖ ⟨I ‖ am \\ [fearless and powerful{therefore}]⟩"
+ ],
+ "I'm not afraid of storms, for I'm learning how to sail my ship.": [
+  "⟨I ‖ am{not} \\ afraid{PP(of storms)}⟩ ‖for‖ ⟨I ‖ am learning | INF(to sail{how} | ship{my})⟩"
+ ],
+ "What do we live for, if it is not to make life less difficult to each other?": [
+  "⟨we ‖ do live{PP(for What), ADV(if: ⟨it ‖ is{not} \\ INF(to make{PP(to each other)} | life \\OC difficult{less})⟩)}⟩"
+ ],
+ "The only way to get rid of a temptation is to yield to it.": [
+  "⟨way{The, only, INF(to get | rid{PP(of temptation{a})})} ‖ is \\ INF(to yield{PP(to it)})⟩"
+ ],
+ "Shall I compare thee to a summer's day?": [
+  "⟨I ‖ Shall compare{PP(to day{summer's{a}})} | thee⟩"
+ ],
+ "Thou art more lovely and more temperate…": [
+  "⟨Thou ‖ art \\ [lovely{more} and temperate{more}]⟩"
+ ],
+ "To be, or not to be, that is the question…": [
+  "⟨that(=[INF(to be) or INF(to be{not})]) ‖ is \\ question{the}⟩"
+ ],
+ "The course of true love never did run smooth…": [
+  "⟨course{The, PP(of love{true})} ‖ did run{never} \\ smooth⟩"
+ ],
+ "We are such stuff as dreams are made on…": [
+  "⟨We ‖ are \\ stuff{such, REL(⟨dreams ‖ are made on | as⟩)}⟩"
+ ],
+ "All that glisters is not gold…": [
+  "⟨All{REL(⟨that ‖ glisters⟩)} ‖ is{not} \\ gold⟩"
+ ],
+ "The mind is its own place, and in itself can make a Heaven of Hell, a Hell of Heaven.": [
+  "⟨mind{The} ‖ is \\ place{its, own} &and& can make{PP(in itself)} | [Heaven{a, PP(of Hell)} , Hell{a, PP(of Heaven)}]⟩"
+ ],
+ "No man is an island, entire of itself…": [
+  "⟨man{No} ‖ is \\ island{an, entire{PP(of itself)}}⟩"
+ ],
+ "Because I could not stop for Death, He kindly stopped for me…": [
+  "⟨He ‖ stopped{ADV(Because: ⟨I ‖ could stop{not, PP(for Death)}⟩), kindly, PP(for me)}⟩"
+ ],
+ "A thing of beauty is a joy for ever…": [
+  "⟨thing{A, PP(of beauty)} ‖ is{for ever} \\ joy{a}⟩"
+ ],
+ "We are all in the gutter, but some of us are looking at the stars.": [
+  "⟨We ‖ are{all, PP(in gutter{the})}⟩ ‖but‖ ⟨some{PP(of us)} ‖ are looking{PP(at stars{the})}⟩"
+ ],
+ "I can resist everything except temptation.": [
+  "⟨I ‖ can resist{PP(except temptation)} | everything⟩"
+ ],
  "": [],
  "   ": [],
  "...": [
@@ -272,7 +497,7 @@
   "⟨I ‖ think⟩ ‖‖ ⟨I ‖ am{therefore}⟩"
  ],
  "She said, \"I am coming home.\"": [
-  "⟨She ‖ said⟩ ‖‖ ⟨I ‖ am coming{home}⟩"
+  "⟨She ‖ said | NC(⟨I ‖ am coming{home}⟩)⟩"
  ],
  "The children (all six of them) ran outside.": [
   "⟨children{The} ‖ ran{outside}⟩"
@@ -280,14 +505,8 @@
  "We hold these truths to be self-evident.": [
   "⟨We ‖ hold | truths{these} \\OC INF(to be \\ self-evident)⟩"
  ],
- "It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.": [
-  "⟨It(=NC(that: ⟨man{a, single, PP(in possession{PP(of fortune{a, good})})} ‖ must be{PP(in want{PP(of wife{a})})}⟩)) ‖ is \\ truth{a, PART(acknowledged{universally})}⟩"
- ],
  "Ask not what your country can do for you; ask what you can do for your country.": [
   "⟨(you) ‖ Ask{not} | NC(⟨country{your} ‖ can do{PP(for you)} | what⟩)⟩ ‖‖ ⟨(you) ‖ ask | NC(⟨you ‖ can do{PP(for country{your})} | what⟩)⟩"
- ],
- "Happy families are all alike; every unhappy family is unhappy in its own way.": [
-  "⟨families{Happy} ‖ are \\ alike{all}⟩ ‖‖ ⟨family{every, unhappy} ‖ is{PP(in way{its, own})} \\ unhappy⟩"
  ],
  "The sun had set, and the stars were shining brightly in the dark sky.": [
   "⟨sun{The} ‖ had | set⟩ ‖and‖ ⟨stars{the} ‖ were shining{brightly, PP(in sky{the, dark})}⟩"

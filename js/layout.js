@@ -224,7 +224,20 @@ export class Draughtsman {
     f.anchors['s1:' + node.id] = { x: W, y: 0 };
     for (const m of pend) f.pending.push({ from: node.id, mod: m });
 
-    if (node.appos && !opts.noAppos) {
+    if (node.appos && !opts.noAppos && node.appos.kind === 'compound' && node.appos.items.every(x => x.kind === 'nounclause')) {
+      // several clauses in apposition: each on its own pedestal, standing in a row along the line
+      let x = W;
+      for (const item of node.appos.items) {
+        const p = this.slot(item, {});
+        p.shift(-p.inP.x, -p.inP.y);
+        const dx = Math.max(x + S.gap, packX(stripLine(f, 0), stripLine(p, 0), S.gap * 2));
+        f.line(x, 0, dx, 0, 'ln');
+        f.absorb(p, dx, 0);
+        x = p.outP.x;          // absorb has already moved p into place
+      }
+      f.outP = { x, y: 0 };
+      f.W = x;
+    } else if (node.appos && !opts.noAppos) {
       const ap = node.appos.kind === 'word' ? this.hWord(node.appos, { text: `(${node.appos.text})` }) : this.slot(node.appos, {});
       ap.shift(-ap.inP.x, -ap.inP.y);
       ap.W = ap.W || ap.outP.x;
@@ -340,6 +353,8 @@ export class Draughtsman {
       if (guard < 39 && collides(slantOnly, probeNoLine, 3)) { L += 8; continue; }
       f.absorb(objSeg, bx - objSeg.inP.x, by - objSeg.inP.y);
       if (node && node.id) f.anchors[node.id] = { x: bx / 2, y: by / 2 };
+      f.slantLen = L;
+      f.slantText = tw;
       return f;
     }
     return new Fig();
@@ -353,8 +368,13 @@ export class Draughtsman {
     return f;
   }
 
+  infPredicate(inf) {
+    if (!inf.more || !inf.more.length) return this.predicate(inf.pred);
+    return this.compound([inf.pred, ...inf.more].map(p => this.predicate(p)), inf.conj || 'and', { forkLeft: true });
+  }
+
   slantInf(inf) {
-    const pred = this.predicate(inf.pred);
+    const pred = this.infPredicate(inf);
     const label = inf.to ? inf.to.text : '';
     const S = this.S;
     const tw = label ? this.tw(label) : 0;
@@ -393,7 +413,7 @@ export class Draughtsman {
     const cw = conj ? this.tw(conj, S.small) : 0;
     const words = c.items;
     const maxTw = Math.max(...words.map(w => (w.kind === 'word' ? this.tw(w.text) : 40)));
-    const depthAlong = S.pad + maxTw + 10;           // where the dotted rung crosses
+    let depthAlong = S.pad + maxTw + 10;           // where the dotted rung crosses
     const figs = words.map(w => {
       if (w.kind === 'word' && !(w.mods || []).length) {
         const f = new Fig();
@@ -407,6 +427,12 @@ export class Draughtsman {
       }
       return this.hang(w);
     });
+    // phrases joined by a conjunction: the rung crosses their slants below the prepositions
+    if (words.some(w => w.kind !== 'word')) {
+      const below = Math.max(...figs.map(g => S.pad + (g.slantText || 0) + 6));
+      const room = Math.min(...figs.map(g => (g.slantLen || depthAlong + 16) - 8));
+      depthAlong = Math.min(Math.max(below, 18), room);
+    }
     let acc = null, xs = [];
     for (const g of figs) {
       if (!acc) { acc = g; xs.push(0); continue; }
@@ -463,7 +489,7 @@ export class Draughtsman {
   infOnPedestal(inf) {
     const S = this.S;
     if (!inf.to) {
-      const p = this.predicate(inf.pred);
+      const p = this.infPredicate(inf);
       p.stand = { x: Math.min(p.anchors[inf.pred.verb.id] ? p.anchors[inf.pred.verb.id].x : 20, 40), y: 0 };
       return p;
     }
@@ -778,7 +804,7 @@ export class Draughtsman {
       f = new Fig();
     }
     // interjections, nouns of address and parentheses float above, unattached
-    const floats = [...s.interjections, ...s.vocatives, ...(s.parens || [])];
+    const floats = [...(s.leadConj ? [s.leadConj] : []), ...s.interjections, ...s.vocatives, ...(s.parens || [])];
     if (floats.length) {
       let x = f.boxes.length ? f.bbox().x0 : 0;
       const top = f.boxes.length ? f.bbox().y0 : 0;

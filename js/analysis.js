@@ -39,7 +39,10 @@ export function phraseText(n, skip = null) {
     case 'pp': return [n.prep ? n.prep.text : '', phraseText(n.obj, skip)].filter(Boolean).join(' ');
     case 'gerund': return [...(n.mods || []).map(m => phraseText(m, skip)), predText(n.pred, skip)].join(' ');
     case 'participle': return predText(n.pred, skip);
-    case 'infinitive': return [(n.to ? n.to.text : ''), predText(n.pred, skip)].filter(Boolean).join(' ');
+    case 'infinitive': {
+      const ps = [n.pred, ...(n.more || [])].map(p => predText(p, skip));
+      return [(n.to ? n.to.text : ''), ps.length > 1 ? list(ps, n.conj || 'and') : ps[0]].filter(Boolean).join(' ');
+    }
     case 'relclause': return clauseText(n.clause, n.link);
     case 'advclause': return n.conj.text + ' ' + clauseText(n.clause);
     case 'nounclause': {
@@ -231,6 +234,7 @@ export function analyse(s) {
   if (s.clauses[0].subject && s.clauses[0].subject.understood) type = s.type === 'exclamatory' ? 'imperative and exclamatory' : 'imperative';
   out.push(`This is a ${form} ${type} sentence.`);
   if (indep > 1) out.push(`It joins ${indep === 2 ? 'two' : indep} independent clauses${s.conjs.filter(Boolean).length ? ` by the conjunction${s.conjs.filter(Boolean).length > 1 ? 's' : ''} ${list([...new Set(s.conjs.filter(Boolean))].map(i))}` : ''}.`);
+  if (s.leadConj) out.push(`The opening conjunction ${i(s.leadConj.text)} joins the sentence to what came before it, and stands apart.`);
   if (s.interjections.length) out.push(`${cap(list(s.interjections.map(w => i(w.text))))} ${s.interjections.length > 1 ? 'are interjections' : 'is an interjection'}, independent of the rest.`);
   if (s.vocatives.length) out.push(`${cap(list(s.vocatives.map(w => i(phraseText(w)))))} ${s.vocatives.length > 1 ? 'are nouns' : 'is a noun'} of address, independent of the rest.`);
   s.clauses.forEach((c, k) => {

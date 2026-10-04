@@ -46,6 +46,7 @@ const CLAUSE_VERBS = set(`say think know believe hope wish feel realize realise 
   agree announce report reply answer write read dream imagine pretend prove recognize recognise reveal confirm assume conclude
   declare determine ensure figure hold indicate maintain observe predict recall reckon regret state suspect swear teach warn
   worry demand see judge trust bet care`);
+const SAYING_VERBS = set('say declare think believe suppose hope fear wish swear admit confess guess reckon trust imagine assure protest vow promise grant own reply answer cry exclaim whisper write');
 const IO_VERBS = set(`give send tell show buy bring teach offer hand lend pass write sell pay ask read make get find leave owe promise grant
   award cook bake build sing throw toss feed serve deny allow save fetch order reserve wish bid cost lend mail email`);
 const TIME_NOUNS = set(`morning evening night afternoon day week month year summer winter spring autumn time hour minute moment season
@@ -122,6 +123,7 @@ export class Parser {
     if (t.pos === 'ADV' && ['ADJ', 'NUM'].includes(this.peek(k + 1).pos) && !['not', 'never'].includes(t.lower)) return true;
     if (t.pos === 'VERB' && t.form === 'ing') return true;
     if (t.pos === 'WH' && ['what', 'which', 'whose'].includes(t.lower)) return true;
+    if (t.pos === 'ADV' && /^as (many|much) as$/.test(t.lower) && this.peek(k + 1).pos === 'NUM') return true;
     return false;
   }
   // does an NP starting at k end right before a finite verb?  (then it is a subject, not an object)
@@ -187,6 +189,8 @@ export class Parser {
       }
     }
 
+    // "And for the support of this Declaration, …": an opening conjunction stands apart
+    if (this.peek().pos === 'CCONJ' && this.t.length > 3) s.leadConj = W(this.next(), 'conjunction');
     // leading interjections
     while (this.peek().pos === 'INTJ') {
       const parts = [this.next().text];
@@ -246,6 +250,14 @@ export class Parser {
         if (frag) s.loose.push(frag);
         else if (!this.done) s.loose.push(W(this.next(), 'word'));
       }
+    }
+    // never drop words silently: whatever the loops leave behind is set out as loose
+    while (!this.done) {
+      if (this.isPunct()) { this.i++; continue; }
+      const before = this.i;
+      const frag = this.parseFragment();
+      if (frag && this.i > before) s.loose.push(frag);
+      else s.loose.push(W(this.next(), 'word'));
     }
     return s;
   }
@@ -327,10 +339,24 @@ export class Parser {
       }
       if (t.pos === 'PREP' && !opts.inverted) {
         const save = this.i;
+        // no contact clauses inside a phrase that opens the sentence ("In the late summer of that year we lived…")
+        this.noContact = (this.noContact || 0) + 1;
         const pp = this.parsePP();
+        this.noContact--;
         if (pp && pp.kind === 'pp' && pp.obj) { pre.push(pp); continue; }
         this.i = save;
         break;
+      }
+      // "Whatever our souls are made of, his and mine are the same": a concessive clause before the subject
+      if (/^(whatever|whoever|whichever|however|whomever)$/.test(t.lower) && !opts.sub) {
+        const save = this.i;
+        const nc = this.parseNounClause();
+        if (nc && nc.kind === 'nounclause' && this.isComma()) {
+          this.i++;
+          pre.push({ kind: 'advclause', id: nid(), conj: W('', 'conjunction'), clause: nc.clause });
+          continue;
+        }
+        this.i = save;
       }
       const whSub = ['when', 'where', 'whenever', 'wherever'].includes(t.lower) && (opts.type !== 'interrogative' || opts.sub) && this.clauseAhead(1);
       if (whSub || t.pos === 'SCONJ' || (SCONJ_WORDS.has(t.lower) && t.pos !== 'WH' && t.lower !== 'that' && t.pos !== 'REL') || this.matchSeq(MULTI_SCONJ)) {
@@ -350,7 +376,7 @@ export class Parser {
       if ((t.pos === 'TO' || (t.lower === 'in' && this.peek(1).lower === 'order' && this.peek(2).lower === 'to')) && !opts.sub) {
         const save = this.i;
         const inf = this.parseInfinitive();
-        if (inf && this.isComma()) { this.i++; pre.push(inf); continue; }
+        if (inf && this.isComma() && this.peek(1).pos !== 'CCONJ') { this.i++; pre.push(inf); continue; }
         this.i = save;
         break;
       }
@@ -367,6 +393,22 @@ export class Parser {
     const interrogative = opts.type === 'interrogative' && !opts.sub && !opts.noQuestion;
 
     let res = null;
+    // "among these are Life, Liberty and the pursuit of Happiness": a phrase first, then the verb, then its subject
+    if (pre.length && pre[pre.length - 1].kind === 'pp' && !interrogative && this.npStart(1) &&
+      ((t.pos === 'AUX' && t.lemma === 'be' && !this.verbStart(1)) || (t.pos === 'VERB' && /^(stood|stands|lay|lies|came|comes|lived|lives|sat|sits|rose|rises|hung|hangs|dwelt|dwells)$/.test(t.lower)))) {
+      const save = this.i;
+      const vg = this.parseVerbGroup();
+      const subj = vg && this.parseNPList('subj');
+      if (subj && (this.isEnd() || this.isComma())) {
+        clause.subject = subj;
+        const verb = W(vg.text, 'verb', { mods: [...pre, ...vg.mods] });
+        const pred = this.newPred(verb, vg);
+        pred.linking = false;
+        clause.preds = [pred];
+        return clause;
+      }
+      this.i = save;
+    }
     // noun clause as subject: "What he said was true."  "That he lied is obvious."
     if (!interrogative && (t.pos === 'WH' || ['whoever', 'whatever', 'whichever'].includes(t.lower) || (t.lower === 'that' && t.pos === 'SCONJ') || t.lower === 'whether')) {
       const save = this.i;
@@ -414,6 +456,14 @@ export class Parser {
       pr.appos = clause.subject;
       clause.subject = pr;
     }
+    // an adverb and phrase between subject and verb: "government even in its best state is…"
+    if (this.peek().pos === 'ADV' && !/^(not|never)$/.test(this.peek().lower) && this.peek(1).pos === 'PREP') {
+      const save = this.i;
+      const adv = W(this.next(), 'adverb');
+      const pp = this.parsePP();
+      if (pp && pp.kind === 'pp' && pp.obj && this.verbStart()) { pp.mods = []; pre.push(adv, pp); }
+      else this.i = save;
+    }
     // an old-fashioned comma between subject and verb
     if (this.isComma() && this.verbStart(1) && !this.isComma(2) && this.peek(1).pos !== 'VERB' || this.isComma() && this.peek(1).pos === 'MODAL') {
       this.i++;
@@ -428,7 +478,11 @@ export class Parser {
       if (this.peek().pos === 'TO' || (this.peek().lower === 'in' && this.peek(1).lower === 'order')) m = this.parseInfinitive();
       else if (this.peek().pos === 'PREP') { const pp = this.parsePP(); if (pp && pp.kind === 'pp' && pp.obj) m = pp; }
       else m = this.parseAdvClause();
-      if (m && this.isComma() && this.verbStart(1)) { this.i++; pre.push(m); }
+      if (m && this.isComma() && this.verbStart(1)) {
+        this.i++;
+        if (m.kind === 'pp' && /^of$/i.test(m.prep.text) && clause.subject.kind === 'word') clause.subject.mods.push(m);
+        else pre.push(m);
+      }
       else this.i = save;
     }
     res = this.finishClause(clause, pre, preSubj);
@@ -441,8 +495,9 @@ export class Parser {
     if (!vp) return null;
     clause.preds = vp.items;
     clause.predConj = vp.conj;
-    // "It is a truth universally acknowledged, that ...": the clause is in apposition with "it"
     const subj = clause.subject;
+    for (const p of clause.preds) if (p.intensive && subj && subj.kind === 'word' && !subj.appos) { subj.appos = p.intensive; delete p.intensive; }
+    // "It is a truth universally acknowledged, that ...": the clause is in apposition with "it"
     if (subj && subj.kind === 'word' && /^it$/i.test(subj.text) && !subj.appos) {
       const save = this.i;
       if (this.isComma()) this.i++;
@@ -453,7 +508,9 @@ export class Parser {
       if (ap) subj.appos = ap; else this.i = save;
     }
     const vw = verbWord(clause.preds[0]);
-    const target = clause.preds[0].verb.kind === 'compound' ? clause.preds[0].verb.items[0] : clause.preds[0].verb;
+    // with a compound verb, opening modifiers hang from the last verb, clear of the lines that join them
+    const v0 = clause.preds[0].verb;
+    const target = v0.kind === 'compound' ? v0.items[v0.items.length - 1] : v0;
     if (pre.length) target.mods.unshift(...pre);
     if (preSubj.length && clause.subject) {
       if (clause.subject.kind === 'word') clause.subject.mods.push(...preSubj);
@@ -487,6 +544,11 @@ export class Parser {
     if (!subj) { this.i = save; return null; }
     clause.expletive = W(ex, 'expletive');
     clause.subject = subj;
+    // "There is no charm equal to tenderness of heart": an adjective set after the noun
+    if (subj.kind === 'word' && this.peek().pos === 'ADJ' && (this.peek(1).pos === 'PREP' || this.peek(1).pos === 'THAN')) {
+      const adj = this.parseAdjPhrase();
+      if (adj) subj.mods.push(adj);
+    }
     const verb = W(vg.text, 'verb', { mods: vg.mods });
     const pred = this.newPred(verb, vg);
     pred.linking = false;
@@ -601,6 +663,12 @@ export class Parser {
     }
     const stranded = this.findStranded(pred);
     if (stranded) { stranded.obj = node; delete stranded.stranded; return; }
+    if (clause.preds.length > 1 && clause.preds.every(p => !p.comp && !p.io && p.verb.kind === 'word')) {
+      const verbs = clause.preds.map(p => p.verb);
+      clause.preds = [{ ...pred, verb: { kind: 'compound', id: nid(), items: verbs, conj: clause.predConj || 'and' }, comp: node, compType: pred.linking ? 'pn' : 'do' }];
+      clause.predConj = null;
+      return;
+    }
     if (!pred.comp) { pred.comp = node; pred.compType = pred.linking ? 'pn' : 'do'; return; }
     if (pred.comp.kind === 'infinitive' && !pred.comp.pred.comp) {
       const st = this.findStranded(pred.comp.pred);
@@ -666,6 +734,16 @@ export class Parser {
           this.i++;
           const vp = this.parseVP();
           if (vp) { items.push(vp); conj = t.text; continue; }
+        } else if (v.pos === 'PREP') {
+          // "and in itself can make": a phrase, then the verb
+          const s2 = this.i;
+          this.i += j;
+          const pp = this.parsePP();
+          if (pp && pp.kind === 'pp' && pp.obj && this.verbStart() && !this.npStart()) {
+            const vp = this.parseVP();
+            if (vp) { verbWord(vp).mods.unshift(pp); items.push(vp); conj = t.text; continue; }
+          }
+          this.i = s2;
         }
         void nx;
       } else if (comma && this.peek().pos === 'VERB' && this.peek().form !== 'ing' && this.peek().form !== 'pp') {
@@ -777,6 +855,10 @@ export class Parser {
       const linkingOK = !pred.comp && (pred.linking || pred.linkAdj);
 
       // adverbs
+      if (t.pos === 'ADV' && /^as (many|much) as$/.test(t.lower) && this.peek(1).pos === 'NUM' && !pred.comp && !pred.linking) {
+        const np1 = this.parseNPList('obj');
+        if (np1) { this.objectTail(pred, np1, lemma); continue; }
+      }
       if (t.pos === 'NEG' || (t.pos === 'ADV' && /^(not|never)$/i.test(t.lower))) {
         verb.mods.push(W(this.next(), 'adverb'));
         continue;
@@ -805,10 +887,15 @@ export class Parser {
 
       // predicate adjective
       if (linkingOK && (t.pos === 'ADJ' || (t.pos === 'VERB' && (t.form === 'pp' || t.form === 'pastpp' || t.form === 'past') && pred.linking && !t.tags.has('Verb')))) {
-        if (!(t.pos === 'ADJ' && ['NOUN', 'PROPN'].includes(this.peek(1).pos) && pred.linking)) {
+        if (!(t.pos === 'ADJ' && (['NOUN', 'PROPN'].includes(this.peek(1).pos) || (this.peek(1).pos === 'VERB' && this.peek(1).form === 'ing' && ['NOUN', 'PROPN'].includes(this.peek(2).pos))) && pred.linking)) {
           const adj = this.parseAdjPhrase();
           if (adj) { pred.comp = adj; pred.compType = 'pa'; continue; }
         }
+      }
+      // a passive verb may take a complement: "all men are created equal", "some are born great"
+      if (!pred.comp && pred.passive && t.pos === 'ADJ' && !['NOUN', 'PROPN'].includes(this.peek(1).pos)) {
+        const adj = this.parseAdjPhrase();
+        if (adj) { pred.comp = adj; pred.compType = 'pa'; continue; }
       }
       // predicate nominative (be / become / remain / seem)
       if (!pred.comp && pred.linking && (this.npStart() || t.pos === 'TO' || (t.lower === 'that' && t.pos === 'SCONJ') || t.pos === 'WH' || t.lower === 'whether')) {
@@ -846,7 +933,7 @@ export class Parser {
 
       // noun clause object: "I know (that) he is right", "She asked whether it was late"
       if (transitiveOK || (pred.compType === 'do' && pred.comp && pred.comp.kind === 'word' && pred.comp.role === 'pronoun' && !pred.io && IO_VERBS.has(lemma) && CLAUSE_VERBS.has(lemma))) {
-        const clauseConn = (t.lower === 'that' && (t.pos === 'SCONJ' || this.clauseAhead(1))) || t.lower === 'whether' || (t.lower === 'if' && CLAUSE_VERBS.has(lemma)) ||
+        const clauseConn = (t.lower === 'that' && (t.pos === 'SCONJ' || this.clauseAhead(1) || (this.peek(1).pos === 'PREP' && this.laterFinite(2)))) || t.lower === 'whether' || (t.lower === 'if' && CLAUSE_VERBS.has(lemma)) ||
           (t.pos === 'WH' && CLAUSE_VERBS.has(lemma));
         if (clauseConn && (CLAUSE_VERBS.has(lemma) || t.lower === 'that')) {
           const save = this.i;
@@ -907,13 +994,21 @@ export class Parser {
         continue;
       }
 
+      // "but yourself" at the end of a clause means "except yourself"
+      if (t.lower === 'but' && t.pos === 'CCONJ' && this.npStart(1) && !this.npThenFinite(1)) {
+        const save = this.i;
+        const but = W(this.next(), 'preposition');
+        const obj = this.parseNPList('pobj');
+        if (obj && (this.isEnd() || this.peek().pos === 'CCONJ')) { verb.mods.push({ kind: 'pp', id: nid(), prep: but, obj }); continue; }
+        this.i = save;
+      }
       // prepositional phrases
       if (t.pos === 'PREP' || (t.pos === 'THAN')) {
         const save = this.i;
         const pp = this.parsePP();
         if (pp && pp.kind === 'pp') {
           if (!pp.obj && !pp.stranded) { verb.mods.push(W(pp.prep.text, 'adverb')); continue; }
-          verb.mods.push(pp);
+          verb.mods.push(pp.obj ? this.coordinatePP(pp, !pred.nested) : pp);
           continue;
         }
         if (pp && (pp.kind === 'word' || pp.kind === 'advclause')) { verb.mods.push(pp); continue; }
@@ -935,7 +1030,7 @@ export class Parser {
       // comma followed by an adverb clause or participle
       if (this.isComma()) {
         const nx = this.peek(1);
-        if ((nx.pos === 'SCONJ' || (SCONJ_WORDS.has(nx.lower) && nx.pos !== 'REL' && nx.lower !== 'that' && nx.pos !== 'WH')) && nx.lower !== 'whether') {
+        if ((nx.pos === 'SCONJ' || (SCONJ_WORDS.has(nx.lower) && nx.pos !== 'REL' && nx.pos !== 'WH')) && nx.lower !== 'whether' && nx.lower !== 'that') {
           this.i++;
           const ac = this.parseAdvClause();
           if (ac) { verb.mods.push(ac); continue; }
@@ -947,6 +1042,39 @@ export class Parser {
           const part = this.parseParticiple();
           if (part) { verb.mods.push(part); continue; }
           this.i--;
+        }
+        // "these truths…, that all men are created equal, that they are endowed…": clauses in apposition with the object
+        if (nx.lower === 'that' && pred.compType === 'do' && pred.comp && pred.comp.kind === 'word' && pred.comp.role !== 'pronoun' && !pred.comp.appos && !pred.nested && this.clauseAhead(2)) {
+          const save = this.i;
+          const ncs = [];
+          while (this.isComma() && this.peek(1).lower === 'that' && (this.clauseAhead(2) || this.peek(2).pos === 'PREP')) {
+            const s2 = this.i;
+            this.i++;
+            const nc = this.parseNounClause();
+            if (!nc) { this.i = s2; break; }
+            ncs.push(nc);
+          }
+          if (ncs.length) { pred.comp.appos = ncs.length === 1 ? ncs[0] : { kind: 'compound', id: nid(), items: ncs, conj: '' }; continue; }
+          this.i = save;
+        }
+        // "a Heaven of Hell, a Hell of Heaven": a second object set after a comma at the end
+        if (pred.compType === 'do' && pred.comp && ['DET', 'POSS'].includes(nx.pos) && !pred.nested) {
+          const save = this.i;
+          this.i++;
+          const np = this.parseNP('obj');
+          if (np && this.isEnd() && !this.isComma()) {
+            pred.comp = pred.comp.kind === 'compound' && pred.comp.conj === ',' ? { ...pred.comp, items: [...pred.comp.items, np] } : { kind: 'compound', id: nid(), items: [pred.comp, np], conj: ',' };
+            continue;
+          }
+          this.i = save;
+        }
+        // "I declare, after all, there is no enjoyment like reading!": a clause after a comma completes a verb of saying
+        if (!pred.comp && !pred.nested && SAYING_VERBS.has(lemma) && (nx.pos === 'EX' || (nx.pos === 'PRON' && (SUBJ_PRON.has(nx.lower) || nx.lower === 'you')))) {
+          const save = this.i;
+          this.i++;
+          const cl = this.parseClause({ sub: true, noQuestion: true });
+          if (cl && (this.isEnd() || this.isComma())) { pred.comp = { kind: 'nounclause', id: nid(), connector: null, clause: cl }; pred.compType = 'do'; continue; }
+          this.i = save;
         }
         if (nx.pos === 'ADV' && (this.isComma(2) || this.isEnd(2))) {
           this.i++;
@@ -962,6 +1090,11 @@ export class Parser {
           this.i = save;
         }
         break;
+      }
+      // an intensive pronoun closing the predicate is kept for the subject: "she would buy the flowers herself"
+      if (t.pos === 'PRON' && /^(myself|yourself|himself|herself|itself|ourselves|yourselves|themselves)$/.test(t.lower) && pred.comp && !pred.nested) {
+        pred.intensive = W(this.next(), 'pronoun');
+        continue;
       }
       // "home" etc. tagged NOUN after motion verbs is handled by the tagger; anything else ends the predicate
       break;
@@ -980,7 +1113,7 @@ export class Parser {
   objectTail(pred, np1, lemma) {
     const t = this.peek();
     // second noun phrase: indirect object, or object complement
-    if (this.npStart() && t.pos !== 'ADJ' && !this.npThenFinite(0) && !(t.pos === 'VERB' && t.form === 'ing') && !(t.pos === 'PRON' && SUBJ_PRON.has(t.lower))) {
+    if (this.npStart() && t.pos !== 'ADJ' && !this.npThenFinite(0) && !(t.pos === 'VERB' && t.form === 'ing') && !(t.pos === 'PRON' && (SUBJ_PRON.has(t.lower) || /sel(f|ves)$/.test(t.lower)))) {
       const save = this.i;
       const tAdvNP = this.tryAdverbialNP(false);
       if (tAdvNP) { this.i = save; }
@@ -1026,6 +1159,24 @@ export class Parser {
       this.i = save;
     }
     pred.comp = np1; pred.compType = 'do';
+  }
+
+  // "in one supreme Court, and in such inferior Courts", "by the United States or by any State"
+  coordinatePP(pp, acrossComma = true) {
+    const items = [pp];
+    let conj = null;
+    for (let guard = 0; guard < 6; guard++) {
+      const save = this.i;
+      if (this.isComma()) { if (!acrossComma) break; this.i++; }
+      if (this.peek().pos === 'CCONJ' && /^(and|or|nor|but|as well as)$/.test(this.peek().lower) && this.peek(1).pos === 'PREP') {
+        const c = this.next().text;
+        const p2 = this.parsePP();
+        if (p2 && p2.kind === 'pp' && p2.obj) { items.push(p2); conj = c; continue; }
+      }
+      this.i = save;
+      break;
+    }
+    return items.length > 1 ? { kind: 'compound', id: nid(), items, conj: conj || 'and' } : pp;
   }
 
   parseAdverb() {
@@ -1105,7 +1256,7 @@ export class Parser {
       if ((n.pos === 'PREP' && ADJ_PREPS.has(n.lower)) || n.pos === 'THAN') {
         const save = this.i;
         const pp = this.parsePP();
-        if (pp && ((pp.kind === 'pp' && pp.obj) || pp.kind === 'advclause')) { adj.mods.push(pp); continue; }
+        if (pp && ((pp.kind === 'pp' && pp.obj) || pp.kind === 'advclause')) { adj.mods.push(pp.kind === 'pp' ? this.coordinatePP(pp) : pp); continue; }
         this.i = save;
         break;
       }
@@ -1205,7 +1356,7 @@ export class Parser {
       // "all of us", "something special", "everyone else"
       if (this.peek().pos === 'ADJ' && /^(some|any|no|every)(thing|one|body)$/.test(t.lower)) node.mods.push(W(this.next(), 'adjective'));
       if (this.peek().lower === 'else') node.mods.push(W(this.next(), 'adjective'));
-      if (['we', 'us', 'you'].includes(t.lower) && this.peek().lower === 'the' && ['NOUN', 'ADJ'].includes(this.peek(1).pos) && ctx !== 'probe') {
+      if (['we', 'us', 'you'].includes(t.lower) && this.peek().lower === 'the' && ['NOUN', 'ADJ', 'PROPN'].includes(this.peek(1).pos) && ctx !== 'probe') {
         const ap = this.parseNP(ctx);
         if (ap && ap.kind === 'word') node.appos = ap;
       }
@@ -1240,6 +1391,11 @@ export class Parser {
         this.coordAdj(pre);
         continue;
       }
+      // "the curling flower spaces": an -ing word before a noun is an adjective, not a gerund
+      if (k.pos === 'VERB' && k.form === 'ing' && pre.length && ['NOUN', 'PROPN'].includes(this.peek(1).pos)) {
+        pre.push(W(this.next(), 'adjective', { participle: true }));
+        continue;
+      }
       if (k.pos === 'ADJ') {
         // stop if this adjective is actually a predicate adjective ("the man happy"?) — rare; accept
         if (!['NOUN', 'PROPN', 'ADJ', 'NUM', 'CCONJ', 'VERB', 'PUNCT', 'POSS'].includes(this.peek(1).pos) && !(this.peek(1).pos === 'CCONJ')) {
@@ -1261,9 +1417,16 @@ export class Parser {
       break;
     }
     // gerund after a possessive: "his singing"
-    if (this.peek().pos === 'VERB' && this.peek().form === 'ing' && pre.length && nounSlot && ctx !== 'probe') {
+    if (this.peek().pos === 'VERB' && this.peek().form === 'ing' && pre.length && nounSlot && ctx !== 'probe' && !['NOUN', 'PROPN'].includes(this.peek(1).pos)) {
       const g = this.parseGerund();
       if (g) { g.mods = pre; return g; }
+    }
+    // "the consent of the governed": a participle used as a noun
+    if (pre.length && pre[pre.length - 1].role === 'article' && this.peek().pos === 'VERB' && /pp|pastpp|past/.test(this.peek().form || '') && (this.isEnd(1) || ['PREP', 'CCONJ'].includes(this.peek(1).pos))) {
+      const head = W(this.next(), 'noun');
+      head.mods = pre;
+      if (ctx !== 'probe') this.parsePostMods(head, ctx);
+      return head;
     }
     // noun run
     const nouns = [];
@@ -1313,9 +1476,13 @@ export class Parser {
     let comma = false;
     if (this.isComma()) { this.i++; comma = true; }
     const t = this.peek();
-    if (t.pos === 'CCONJ' && ['and', 'or', 'but', 'yet'].includes(t.lower) && this.peek(1).pos === 'ADJ') {
+    // coordinated adjectives may carry an adverb: "my younger and more vulnerable years"
+    const advAdj = t.pos === 'CCONJ' && this.peek(1).pos === 'ADV' && this.peek(2).pos === 'ADJ' && ['NOUN', 'PROPN', 'ADJ'].includes(this.peek(3).pos);
+    if (t.pos === 'CCONJ' && ['and', 'or', 'but', 'yet'].includes(t.lower) && (this.peek(1).pos === 'ADJ' || advAdj)) {
       this.i++;
+      const adv = this.peek().pos === 'ADV' ? W(this.next(), 'adverb') : null;
       const a = W(this.next(), 'adjective');
+      if (adv) a.mods.push(adv);
       const prev = pre.pop();
       if (prev.kind === 'compound') { prev.items.push(a); prev.conj = t.text; pre.push(prev); }
       else pre.push({ kind: 'compound', id: nid(), items: [prev, a], conj: t.text });
@@ -1346,6 +1513,16 @@ export class Parser {
         this.i = save;
         break;
       }
+      // "such inferior Courts as the Congress may … ordain": "as" acting as a relative pronoun
+      if (t.lower === 'as' && node.kind === 'word' && node.mods.some(m => m.kind === 'word' && /^such$/i.test(m.text)) && this.npThenFinite(1)) {
+        const save = this.i;
+        const rel = W(this.next(), 'pronoun', { relative: true });
+        this.gap++;
+        const cl = this.parseClause({ sub: true, noQuestion: true });
+        this.gap--;
+        if (cl) { this.fillGap(cl, rel, 'nominal'); node.mods.push({ kind: 'relclause', id: nid(), clause: cl, link: rel.id }); continue; }
+        this.i = save;
+      }
       // relative clause
       const relWord = ['who', 'whom', 'whose', 'which'].includes(t.lower) || (t.lower === 'that' && (t.pos === 'REL' || isNoun && (this.verbStart(1) || this.npThenFinite(1)))) ||
         (t.lower === 'where' && isNoun && this.clauseAhead(1)) || (t.lower === 'when' && isNoun && TIME_NOUNS.has(node.text.toLowerCase()) && this.clauseAhead(1)) ||
@@ -1367,7 +1544,7 @@ export class Parser {
         this.i = save;
       }
       // contact clause: "the book I read"
-      if (isNoun && t.pos === 'PRON' && (SUBJ_PRON.has(t.lower) || t.lower === 'you') && this.isFiniteTok(this.peek(1)) && ctx !== 'probe' && ctx !== 'pn') {
+      if (isNoun && !this.noContact && t.pos === 'PRON' && (SUBJ_PRON.has(t.lower) || t.lower === 'you') && this.isFiniteTok(this.peek(1)) && ctx !== 'probe' && ctx !== 'pn') {
         const save = this.i;
         const rel = W('that', 'pronoun', { understood: true, relative: true });
         this.gap++;
@@ -1381,8 +1558,8 @@ export class Parser {
         this.i = save;
       }
       // participial phrase
-      const pastPart = t.form === 'pastpp' && isNoun && ((this.peek(1).lower === 'by' && (ctx !== 'subj' || this.laterFinite(2))) || (ctx === 'subj' && this.peek(1).pos === 'PREP' && !CLAUSE_VERBS.has(t.lemma || t.root) && this.laterFinite(2)));
-      if (t.pos === 'VERB' && ((t.form === 'ing' && (isNoun || ctx !== 'subj')) || (t.form === 'pp' && isNoun) || pastPart)) {
+      const pastPart = t.form === 'pastpp' && !isNoun && ctx !== 'subj' && this.peek(1).lower === 'by' || t.form === 'pastpp' && isNoun && ((this.peek(1).lower === 'by' && (ctx !== 'subj' || this.laterFinite(2))) || (ctx === 'subj' && this.peek(1).pos === 'PREP' && !CLAUSE_VERBS.has(t.lemma || t.root) && this.laterFinite(2)));
+      if (t.pos === 'VERB' && ((t.form === 'ing' && (isNoun || ctx !== 'subj')) || (t.form === 'pp' && (isNoun || this.peek(1).lower === 'by')) || pastPart)) {
         if (!(ctx === 'subj' && t.form === 'ing' && false)) {
           const save = this.i;
           const part = this.parseParticiple();
@@ -1390,7 +1567,7 @@ export class Parser {
           this.i = save;
         }
       }
-      if (t.pos === 'ADV' && /ly$/.test(t.lower) && this.peek(1).pos === 'VERB' && /pp|pastpp/.test(this.peek(1).form || '') && isNoun && ctx !== 'probe') {
+      if (t.pos === 'ADV' && (/ly$/.test(t.lower) || /^(here|there)(in|by|of|to|upon|with|after|tofore)$/.test(t.lower)) && this.peek(1).pos === 'VERB' && /pp|pastpp/.test(this.peek(1).form || '') && isNoun && ctx !== 'probe') {
         const save = this.i;
         const adv = W(this.next(), 'adverb');
         const part = this.parseParticiple();
@@ -1408,16 +1585,26 @@ export class Parser {
         this.i++;
         const ap = this.parseNP(ctx === 'subj' ? 'subj' : 'obj');
         const closes = this.isComma() && !(this.peek(1).pos === 'CCONJ') && (ctx === 'subj' ? this.verbStart(1) : true) && !this.npStart(1);
-        const ends = this.isEnd() && !this.isComma() && ctx !== 'subj';
-        if (ap && ap.kind === 'word' && (closes || ends)) {
+        const ends = this.isEnd() && !this.isComma() && ctx !== 'subj' && ctx !== 'pobj';
+        // "a Heaven of Hell, a Hell of Heaven" is a pair of parallel phrases, not an appositive
+        const indefinite = n => n.mods[0] && n.mods[0].kind === 'word' && /^an?$/i.test(n.mods[0].text) && n.mods.some(m => m.kind === 'pp');
+        const parallel = ap && ap.kind === 'word' && indefinite(node) && indefinite(ap);
+        if (ap && ap.kind === 'word' && (closes || ends) && !parallel) {
           node.appos = ap;
           if (closes && ctx === 'subj') this.i++;
           continue;
         }
         this.i = save;
       }
+      if (this.isComma() && this.peek(1).pos === 'ADJ' && ['PREP', 'THAN'].includes(this.peek(2).pos) && node.kind === 'word' && ctx !== 'probe') {
+        const save = this.i;
+        this.i++;
+        const adj = this.parseAdjPhrase();
+        if (adj && (this.isEnd() || this.isComma())) { node.mods.push(adj); continue; }
+        this.i = save;
+      }
       // "someone special" handled; "the man himself"
-      if (t.pos === 'PRON' && /self$|selves$/.test(t.lower) && ctx !== 'probe') {
+      if (t.pos === 'PRON' && /self$|selves$/.test(t.lower) && ctx !== 'probe' && !(ctx === 'obj' && /^(myself|yourself|himself|herself|ourselves|yourselves)$/.test(t.lower) && this.isEnd(1))) {
         node.appos = W(this.next(), 'pronoun');
         continue;
       }
@@ -1470,11 +1657,12 @@ export class Parser {
       obj = this.parseNounClause();
     }
     if (!obj && t.pos === 'REL' && t.lower === 'which') return null;
+    if (!obj && /^than$/i.test(prepText) && (t.pos === 'ADJ' || (t.pos === 'VERB' && /pp|pastpp/.test(t.form || ''))) && (this.isEnd(1) || this.isComma(1))) obj = W(this.next(), 'adjective');
     if (!obj && this.npStart()) obj = this.parseNPList('pobj');
     if (!obj && t.pos === 'ADV' && ['now', 'then', 'here', 'there', 'home', 'today', 'tomorrow', 'yesterday', 'tonight', 'long', 'afar', 'above', 'below', 'ever'].includes(t.lower)) obj = W(this.next(), 'noun');
     if (!obj) {
-      if (this.gap > 0 && (this.isEnd() || this.peek().pos === 'CCONJ' || this.isComma())) return { kind: 'pp', id: nid(), prep, obj: null, stranded: true };
-      if (this.isEnd() || ['ADV', 'CCONJ', 'SCONJ', 'PREP', 'TO'].includes(this.peek().pos) || this.isComma()) return W(prepText, 'adverb');
+      if (this.gap > 0 && !/^(since|before|after|ago|along|around|about)$/i.test(prepText) && (this.isEnd() || this.peek().pos === 'CCONJ' || this.peek().pos === 'THAN' || this.isComma())) return { kind: 'pp', id: nid(), prep, obj: null, stranded: true };
+      if (this.isEnd() || ['ADV', 'CCONJ', 'SCONJ', 'PREP', 'TO', 'THAN'].includes(this.peek().pos) || this.isComma()) return W(prepText, 'adverb');
       this.i = start;
       return null;
     }
@@ -1511,7 +1699,44 @@ export class Parser {
     const verb = W(words.map(w => w.text).join(' '), 'verb', { mods });
     const pred = this.newPred(verb, { lemma, linking: lemma === 'be' && main.pos === 'AUX' || LINK_FULL.has(lemma) && !passive, linkAdj: LINK_ADJ.has(lemma) && !passive, passive, nested: true });
     this.parseVPTail(pred);
-    return { kind: 'infinitive', id: nid(), to: W(to, 'preposition'), pred };
+    const inf = { kind: 'infinitive', id: nid(), to: W(to, 'preposition'), pred };
+    this.moreInfinitives(inf);
+    return inf;
+  }
+
+  // "to form a more perfect Union, establish Justice, … and secure the Blessings of Liberty": one "to", several verbs
+  moreInfinitives(inf) {
+    const preds = [inf.pred];
+    let conj = null;
+    const verbAhead = () => this.t.slice(this.i, this.i + 60).some((x, k, a) => x.pos === 'CCONJ' && a[k + 1] && (a[k + 1].pos === 'VERB' || canBeVerb(a[k + 1])));
+    for (let guard = 0; guard < 10; guard++) {
+      const save = this.i;
+      let comma = false, c = null;
+      if (this.isComma()) { this.i++; comma = true; }
+      if (this.peek().pos === 'CCONJ' && /^(and|or|nor)$/.test(this.peek().lower)) c = this.next().text;
+      const v = this.peek();
+      const verbish = (v.pos === 'VERB' && v.form !== 'ing' && v.form !== 'pres3') ||
+        (c && v.pos === 'NOUN' && !/s$/.test(v.lower) && !preds[0].comp && this.npStart(1)) ||
+        (canBeVerb(v) && !['PRON', 'DET', 'POSS', 'PREP', 'ADJ'].includes(v.pos) && !/s$/.test(v.lower) && (this.npStart(1) || this.peek(1).pos === 'PREP'));
+      if ((!comma && !c) || !verbish || (!c && !verbAhead())) { this.i = save; break; }
+      const vt = this.next();
+      const verb = W(vt, 'verb');
+      const lemma = vt.lemma || vt.root || vt.lower;
+      const p = this.newPred(verb, { lemma, linking: false, linkAdj: LINK_ADJ.has(lemma), passive: false, nested: true });
+      this.parseVPTail(p);
+      preds.push(p);
+      if (c) { conj = c; break; }
+    }
+    if (preds.length < 2) return;
+    const last = preds[preds.length - 1];
+    // a shared object: "to deny or disparage others"
+    if (preds.slice(0, -1).every(p => !p.comp && !p.io && p.verb.kind === 'word' && !p.verb.mods.length) && last.comp && last.verb.kind === 'word') {
+      inf.pred = { ...last, verb: { kind: 'compound', id: nid(), items: preds.map(p => p.verb), conj: conj || 'and' } };
+      return;
+    }
+    inf.pred = preds[0];
+    inf.more = preds.slice(1);
+    inf.conj = conj || 'and';
   }
 
   parseParticiple() {
@@ -1531,7 +1756,7 @@ export class Parser {
   parseNounClause() {
     const save = this.i;
     const t = this.peek();
-    if ((t.lower === 'that' && (t.pos === 'SCONJ' || this.clauseAhead(1))) || t.lower === 'whether' || t.lower === 'if') {
+    if ((t.lower === 'that' && (t.pos === 'SCONJ' || this.clauseAhead(1) || this.peek(1).pos === 'PREP')) || t.lower === 'whether' || t.lower === 'if') {
       this.i++;
       const conn = W(t, 'conjunction');
       let orNot = null;
@@ -1697,9 +1922,22 @@ function parseOnce(tokens, end) {
   return s;
 }
 
+const IRREGULAR_PLURALS = new Set(['men', 'women', 'children', 'people', 'mice', 'geese', 'feet', 'teeth', 'oxen']);
+function pluralAdjuncts(s) {
+  let n = 0;
+  const seen = new Set();
+  (function go(x) {
+    if (!x || typeof x !== 'object' || seen.has(x)) return;
+    seen.add(x);
+    if (x.kind === 'word' && x.role === 'adjunct' && (IRREGULAR_PLURALS.has(x.text.toLowerCase()) || /[^s]s$/.test(x.text.toLowerCase()))) n++;
+    for (const v of Object.values(x)) if (v && typeof v === 'object') go(v);
+  })(s);
+  return n;
+}
+
 function badness(s, flips) {
   if (!s) return 1000;
-  let b = flips * 2;
+  let b = flips * 2 + pluralAdjuncts(s) * 6;
   const looseWords = (s.loose || []).reduce((n, x) => n + countWords(x), 0);
   b += looseWords * 6;
   if (s.fragment) b += 14;
@@ -1726,7 +1964,7 @@ function alternatives(t) {
   const alts = [];
   if (t.pos === 'PUNCT' || t.userPos) return alts;
   if (t.pos === 'NOUN' && canBeVerb(t)) alts.push('VERB');
-  if (t.pos === 'VERB' && (t.tags.has('Noun') || /Noun|Plural|Singular/.test(t.sw)) && t.form !== 'ing') alts.push('NOUN');
+  if (t.pos === 'VERB' && ((t.tags.has('Noun') || /Noun|Plural|Singular/.test(t.sw)) && t.form !== 'ing' || t.form === 'pres3')) alts.push('NOUN');
   if (t.pos === 'ADJ' && canBeVerb(t)) alts.push('VERB');
   if (t.pos === 'VERB' && /pastpp|past/.test(t.form || '') && (t.tags.has('Adjective') || /Adj/.test(t.sw))) alts.push('ADJ');
   if (t.pos === 'PREP' && t.lower === 'like') alts.push('VERB');
@@ -1785,6 +2023,7 @@ export function show(n) {
       if (n.vocatives.length) extras.push('VOC:' + n.vocatives.map(show).join(','));
       if (n.loose.length) extras.push('LOOSE:' + n.loose.map(show).join(','));
       if (n.tag) extras.push('TAG:' + n.tag);
+      if (n.leadConj) extras.push('CONJ:' + n.leadConj.text);
       return (extras.length ? '[' + extras.join(' ') + '] ' : '') + s;
     }
     case 'clause': {
@@ -1794,7 +2033,7 @@ export function show(n) {
     case 'word': return (n.understood ? '(' + n.text + ')' : n.text) + (n.appos ? `(=${show(n.appos)})` : '') + ms(n.mods);
     case 'compound': return '[' + n.items.map(show).join(` ${n.conj} `) + ']';
     case 'gerund': return 'GER(' + showPred(n.pred) + ')' + ms(n.mods);
-    case 'infinitive': return 'INF(' + (n.to ? 'to ' : '') + showPred(n.pred) + ')';
+    case 'infinitive': return 'INF(' + (n.to ? 'to ' : '') + [n.pred, ...(n.more || [])].map(showPred).join(` &${n.conj || 'and'}& `) + ')';
     case 'nounclause': return 'NC(' + (n.connector ? n.connector.text + ': ' : '') + show(n.clause) + ')';
     case 'pp': return 'PP(' + (n.prep ? n.prep.text : '·') + ' ' + show(n.obj) + ')';
     case 'participle': return 'PART(' + showPred(n.pred) + ')';

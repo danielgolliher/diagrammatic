@@ -42,7 +42,8 @@ L('ADV', `very too quite rather always often sometimes seldom rarely soon now th
   hence thus therefore however indeed else together alone abroad ahead apart aside later yesterday today
   tomorrow tonight please hither thither thence whence afterward afterwards meanwhile instead quickly slowly
   barely hardly scarcely merely nevertheless nonetheless otherwise somewhat sometime anyway anyhow downstairs
-  upstairs overseas backward backwards forward forwards homeward onward outdoors indoors`);
+  upstairs overseas backward backwards forward forwards homeward onward outdoors indoors herein hereby hereof hereto
+  hereafter heretofore therein thereby thereof thereto thereafter thereupon whereof whereby wherein hitherto`);
 
 // Verbs whose base form follows "to" or a modal in ways compromise often misreads.
 const MOTION = new Set('go goes went gone going come comes came coming return returns returned walk walked ran run runs drove drive driven rode ride flew fly sent send take took taken bring brought get got head headed hurried hurry rushed rush moved move'.split(' '));
@@ -77,6 +78,13 @@ function isVerbRoot(r) {
   const lxs = Array.isArray(lx) ? lx.join(',') : (lx || '');
   return /Infinitive|PresentTense|PastTense/.test(lxs) || /Verb/.test(SWITCHES[r] || '');
 }
+
+const IRREG_LEMMA = Object.fromEntries(`seen:see saw:see known:know knew:know said:say told:tell found:find given:give gave:give taken:take
+  took:take made:make thought:think felt:feel heard:hear held:hold kept:keep left:leave written:write wrote:write gone:go went:go done:do
+  did:do brought:bring bought:buy taught:teach caught:catch meant:mean met:meet sent:send spent:spend stood:stand understood:understand
+  begun:begin began:begin born:bear borne:bear chosen:choose chose:choose spoken:speak spoke:speak broken:break broke:break
+  forgotten:forget forgot:forget drawn:draw drew:draw shown:show grown:grow grew:grow thrown:throw threw:throw laid:lay paid:pay
+  sold:sell sat:sit led:lead fed:feed fell:fall fallen:fall became:become came:come ran:run`.split(/\s+/).map(p => p.split(':')));
 
 function capFirst(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
@@ -137,6 +145,7 @@ export function tagText(text, overrides = {}) {
       }
     }
     const end = (raw.trim().match(/([.?!]+)["')\]]*$/) || [, '.'])[1];
+    mergeIdioms(toks);
     toks.forEach((t, i) => { t.i = i; });
     // user corrections, keyed "<sentence>:<word index>", are fixed before context is read
     let wi = 0;
@@ -151,6 +160,28 @@ export function tagText(text, overrides = {}) {
     sentences.push({ tokens: toks, end, raw: raw.trim() });
   });
   return sentences;
+}
+
+// fixed phrases that act as a single word
+const IDIOMS = [['as well as', 'CCONJ'], ['as many as', 'ADV'], ['as much as', 'ADV'], ['from time to time', 'ADV'], ['each other', 'PRON'], ['one another', 'PRON'], ['at last', 'ADV'], ['of course', 'ADV'],
+  ['at least', 'ADV'], ['in fact', 'ADV'], ['by and by', 'ADV'], ['now and then', 'ADV'], ['once upon a time', 'ADV'], ['for ever', 'ADV']];
+function mergeIdioms(toks) {
+  for (let i = 0; i < toks.length; i++) {
+    // "a far, far better thing": a word doubled for emphasis is one adverb
+    const a = toks[i], c = toks[i + 1], b = toks[i + 2];
+    if (a && b && c && c.text === ',' && a.lower === b.lower && /^(far|very|long|so|much)$/.test(a.lower)) {
+      toks.splice(i, 3, { text: `${a.text}, ${b.text}`, orig: `${a.orig}, ${b.orig}`, lower: `${a.lower}, ${b.lower}`, tags: new Set(['Adverb']), root: a.lower, sw: '', pos: null, fixed: 'ADV' });
+      continue;
+    }
+    for (const [phrase, pos] of IDIOMS) {
+      const ws = phrase.split(' ');
+      if (ws.every((w, k) => toks[i + k] && toks[i + k].pos !== 'PUNCT' && toks[i + k].lower === w)) {
+        const parts = toks.splice(i, ws.length);
+        toks.splice(i, 0, { text: parts.map(p => p.text).join(' '), orig: parts.map(p => p.orig).join(' '), lower: phrase, tags: new Set([pos === 'PRON' ? 'Pronoun' : 'Adverb']), root: phrase, sw: '', pos: null, fixed: pos });
+        break;
+      }
+    }
+  }
 }
 
 function punct(ch) { return { text: ch, lower: ch, pos: 'PUNCT', tags: new Set(), root: ch, sw: '' }; }
@@ -201,7 +232,7 @@ function guessForm(t) {
 }
 
 export function canBeVerb(t) {
-  if (!t) return false;
+  if (!t || !t.tags) return false;
   if (t.pos === 'VERB') return true;
   if (['DET', 'POSS', 'PRON', 'PUNCT', 'CCONJ', 'MODAL', 'WH', 'NUM', 'TO', 'INTJ', 'EX'].includes(t.pos)) return false;
   if (t.tags.has('Verb')) return true;
@@ -215,7 +246,7 @@ export function canBeVerb(t) {
 }
 
 function canBeNoun(t) {
-  if (!t) return false;
+  if (!t || !t.tags) return false;
   if (t.pos === 'NOUN' || t.pos === 'PROPN') return true;
   if (t.tags.has('Noun') && !t.tags.has('Pronoun')) return true;
   return /Noun/.test(t.sw);
@@ -223,6 +254,7 @@ function canBeNoun(t) {
 
 // --- POS assignment --------------------------------------------------------
 function basePOS(t) {
+  if (t.fixed) return t.fixed;
   const w = t.lower;
   const c = CLOSED[w];
   const tg = t.tags;
@@ -380,7 +412,7 @@ function assignPOS(toks) {
           if (prev.pos !== 'VERB' && prev.pos !== 'PART') t.pos = (nounish(next) || ['DET', 'POSS', 'PRON'].includes(next.pos)) ? 'PREP' : 'ADV';
           break;
         case 'ADV':
-          if (['DET', 'POSS'].includes(prev.pos) && (next.pos === 'NOUN' || w === 'only') && !/ly$|^(very|too|so|quite|rather|most|more|less|least|really|extremely|almost|nearly|just|even)$/.test(w) || (w === 'only' && ['DET', 'POSS'].includes(prev.pos))) { t.pos = 'ADJ'; break; }
+          if (['DET', 'POSS'].includes(prev.pos) && (next.pos === 'NOUN' || w === 'only') && !/ly$|^(very|too|so|quite|rather|most|more|less|least|really|extremely|almost|nearly|even)$/.test(w) || (w === 'only' && ['DET', 'POSS'].includes(prev.pos))) { t.pos = 'ADJ'; break; }
           if (/^(yesterday|today|tomorrow|tonight)$/.test(w) && (prev.pos === 'PREP' || prev.pos === 'POSS' || next.pos === 'POSS' && false)) t.pos = 'NOUN';
           if (w === 'home' && prev.pos === 'VERB') t.pos = 'ADV';
           break;
@@ -400,7 +432,12 @@ function assignPOS(toks) {
       }
       if (['who', 'whom', 'which', 'whose'].includes(w) && i > 0 && ['NOUN', 'PROPN', 'PRON'].includes(prev.pos)) t.pos = 'REL';
       if (['who', 'whom', 'which', 'whose'].includes(w) && prev.text === ',' && i > 1) t.pos = 'REL';
-      // after modal / do-support / to, the next word is a bare verb
+      // after modal / do-support / to, the next word is a bare verb (adverbs may intervene: "may from time to time ordain")
+      if (prev.pos === 'ADV' && i > 1) {
+        let k = i - 1;
+        while (k > 0 && ['ADV', 'NEG'].includes(toks[k].pos)) k--;
+        if (toks[k].pos === 'MODAL' && (t.pos === 'NOUN' || t.pos === 'ADJ') && !/s$/.test(w)) { t.pos = 'VERB'; t.form = 'base'; }
+      }
       const doAux = x => x.pos === 'AUX' && x.lemma === 'do' && !['MODAL', 'TO', 'AUX'].includes(P(toks.indexOf(x) - 1).pos);
       if ((prev.pos === 'MODAL' || doAux(prev) || (prev.pos === 'NEG' && (P(i - 2).pos === 'MODAL' || doAux(P(i - 2))))) &&
         !['PRON', 'DET', 'POSS', 'NEG', 'ADV', 'AUX', 'PROPN', 'NUM', 'EX', 'PUNCT', 'WH', 'TO'].includes(t.pos) && (canBeVerb(t) || t.pos === 'NOUN' || (t.pos === 'PREP' && w === 'like') || t.pos === 'ADJ' && !BE_FORMS.has(prev.lower))) {
@@ -417,6 +454,38 @@ function assignPOS(toks) {
     if (t.pos === 'NOUN' && canBeVerb(t) && /s$/.test(t.lower) && !['VERB', 'AUX', 'MODAL'].includes((toks[i + 1] || {}).pos) || (t.pos === 'NOUN' && canBeVerb(t) && toks[i + 1] && ['AUX', 'VERB', 'MODAL'].includes(toks[i + 1].pos) && /s$/.test(t.lower))) {
       t.pos = 'VERB'; t.form = guessForm(t);
     }
+  }
+  for (let i = 0; i < toks.length; i++) {
+    const t = toks[i], prev = toks[i - 1] || {}, next = toks[i + 1] || {}, n2 = toks[i + 2] || {}, n3 = toks[i + 3] || {};
+    if (t.userPos || t.pos === 'PUNCT') continue;
+    // "a dark and stormy night": both words before the noun are adjectives
+    if (['DET', 'POSS', 'ADJ', 'NUM'].includes(prev.pos) && t.pos === 'NOUN' && next.pos === 'CCONJ' && /^(and|or|but|yet)$/.test(next.lower) &&
+      ['ADJ', 'NOUN'].includes(n2.pos) && n3.pos === 'NOUN' && !/s$/.test(t.lower)) {
+      t.pos = 'ADJ';
+      if (n2.pos === 'NOUN' && !n2.userPos) n2.pos = 'ADJ';
+    }
+    // compromise sometimes files a plain noun as an adjective ("justice") or a name ("harmony")
+    if (t.pos === 'ADJ' && /(ice|tion|sion|ness|ment|ity|ism|ship|hood|ance|ence|ony|dom)$/.test(t.lower) && !t.tags.has('Comparable') && !/Adj/.test(t.sw) && !t.participle) t.pos = 'NOUN';
+    if (t.pos === 'PROPN' && /^[a-z]/.test(t.text)) t.pos = 'NOUN';
+    // "will little note", "can never forget": an adverb between a modal and its verb
+    if ((t.pos === 'VERB' || t.pos === 'ADJ') && (prev.pos === 'MODAL' || (prev.pos === 'CCONJ' && next.pos === 'VERB')) && (next.pos === 'VERB' || (canBeVerb(next) && (next.pos !== 'NOUN' || !n2.pos || ['PUNCT', 'CCONJ', 'DET', 'PRON', 'PREP', 'ADV', 'POSS'].includes(n2.pos)))) && /^(little|long|well|ill|soon|still|hardly|scarcely|ever|truly|surely|rightly|justly|best|better|rather|only|just|also|even)$/.test(t.lower)) {
+      t.pos = 'ADV';
+      if (next.pos !== 'VERB') { next.pos = 'VERB'; next.form = 'base'; }
+    }
+    // "He kindly stopped": an -ly word right before a verb is an adverb
+    if (t.pos === 'ADJ' && /ly$/.test(t.lower) && next.pos === 'VERB' && ['PRON', 'NOUN', 'PROPN', 'MODAL', 'AUX'].includes(prev.pos)) t.pos = 'ADV';
+    // "of having nothing to do", "being kind": have and be as gerunds
+    if (t.pos === 'AUX' && /^(having|being)$/.test(t.lower) && !(next.pos === 'VERB' && /pp|pastpp|past|ing/.test(next.form || '')) && ['NOUN', 'PRON', 'DET', 'POSS', 'ADJ', 'NUM', 'PROPN'].includes(next.pos)) { t.pos = 'VERB'; t.form = 'ing'; t.lemma = t.lower === 'having' ? 'have' : 'be'; }
+    // "Why, sometimes…": an exclamation, not a question
+    if (i === 0 && t.lower === 'why' && next.text === ',') t.pos = 'INTJ';
+    // "government … is but a necessary evil": "but" meaning "only"
+    if (t.lower === 'but' && prev.pos === 'AUX' && prev.lemma === 'be' && ['DET', 'ADJ', 'NUM'].includes(next.pos)) t.pos = 'ADV';
+    // "less difficult", "more lovely": a comparative adverb before an adjective
+    if (/^(less|more|most|least)$/.test(t.lower) && (next.pos === 'ADJ' || (next.pos === 'VERB' && /pp|pastpp/.test(next.form || '')))) t.pos = 'ADV';
+    // "We are all in the gutter": a floating "all" after a form of be
+    if (/^(all|both)$/.test(t.lower) && prev.pos === 'AUX' && prev.lemma === 'be' && ['PREP', 'ADJ'].includes(next.pos)) t.pos = 'ADV';
+    // hyphenated present participles: "spring-cleaning his little home"
+    if (/-[a-z]+ing$/.test(t.lower) && !['DET', 'POSS', 'ADJ'].includes(prev.pos) && ['DET', 'POSS', 'PRON', 'NOUN', 'PROPN', 'NUM'].includes(next.pos) && !NOT_ING.has(t.lower.split('-').pop())) { t.pos = 'VERB'; t.form = 'ing'; }
   }
   // a clause with a subject but no verb: the last noun after a noun is probably the verb ("the sun rose")
   {
@@ -449,7 +518,7 @@ function assignPOS(toks) {
     if (t.pos === 'CCX') t.pos = t.lower === 'for' ? 'PREP' : 'ADV';
     if (t.pos === 'VERB' && !t.form) t.form = guessForm(t);
     if (t.pos === 'VERB') {
-      t.lemma = auxLemma(t.lower) || t.root || t.lower;
+      t.lemma = auxLemma(t.lower) || IRREG_LEMMA[t.lower] || t.root || t.lower;
       if (t.form === 'pastpp' && IRREG_PAST.has(t.lower)) t.form = 'past';
     }
     if (t.pos === 'AUX' && !t.lemma) t.lemma = auxLemma(t.lower) || 'be';
