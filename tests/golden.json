@@ -1,0 +1,343 @@
+{
+ "42": [
+  "FRAG(42)"
+ ],
+ "The old man walked slowly to the village.": [
+  "⟨man{The, old} ‖ walked{slowly, PP(to village{the})}⟩"
+ ],
+ "Birds sing.": [
+  "⟨Birds ‖ sing⟩"
+ ],
+ "John and Mary don't like the very large dog that barked at them.": [
+  "⟨[John and Mary] ‖ do like{not} | dog{the, large{very}, REL(⟨that ‖ barked{PP(at them)}⟩)}⟩"
+ ],
+ "She gave him a book about birds yesterday.": [
+  "⟨She ‖ gave{yesterday} IO:him | book{a, PP(about birds)}⟩"
+ ],
+ "They elected him president.": [
+  "⟨They ‖ elected | him \\OC president⟩"
+ ],
+ "Swimming in the lake is fun.": [
+  "⟨GER(Swimming{PP(in lake{the})}) ‖ is \\ fun⟩"
+ ],
+ "I want to go home because I am tired.": [
+  "⟨I ‖ want{ADV(because: ⟨I ‖ am \\ tired⟩)} | INF(to go{home})⟩"
+ ],
+ "There are three apples on the table.": [
+  "⟨EX:There apples{three, PP(on table{the})} ‖ are⟩"
+ ],
+ "Where did you put my keys?": [
+  "⟨you ‖ did put{Where} | keys{my}⟩"
+ ],
+ "Oh, Mary, close the door!": [
+  "[INTJ:Oh VOC:Mary] ⟨(you) ‖ close | door{the}⟩"
+ ],
+ "The letter written by her was lost.": [
+  "⟨letter{The, PART(written{PP(by her)})} ‖ was \\ lost⟩"
+ ],
+ "He picked up the phone and called his mother.": [
+  "⟨He ‖ picked up | phone{the} &and& called | mother{his}⟩"
+ ],
+ "I know that he is right.": [
+  "⟨I ‖ know | NC(that: ⟨he ‖ is \\ right⟩)⟩"
+ ],
+ "It's a beautiful day, isn't it?": [
+  "[TAG:is not it] ⟨It ‖ is \\ day{a, beautiful}⟩"
+ ],
+ "Four score and seven years ago our fathers brought forth on this continent a new nation.": [
+  "⟨fathers{our} ‖ brought{ago{PP(· [score{Four} and years{seven}])}, forth, PP(on continent{this})} | nation{a, new}⟩"
+ ],
+ "The quick brown fox jumps over the lazy dog.": [
+  "⟨fox{The, quick, brown} ‖ jumps{PP(over dog{the, lazy})}⟩"
+ ],
+ "The man who lives next door is a doctor.": [
+  "⟨man{The, REL(⟨who ‖ lives | door{next}⟩)} ‖ is \\ doctor{a}⟩"
+ ],
+ "When the sun rose, the birds began to sing.": [
+  "⟨birds{the} ‖ began{ADV(When: ⟨sun{the} ‖ rose⟩)} | INF(to sing)⟩"
+ ],
+ "My brother, a doctor, works in Boston.": [
+  "⟨brother(=doctor{a}){My} ‖ works{PP(in Boston)}⟩"
+ ],
+ "The children laughed and played in the garden.": [
+  "⟨children{The} ‖ laughed &and& played{PP(in garden{the})}⟩"
+ ],
+ "She washed and dried the dishes.": [
+  "⟨She ‖ [washed and dried] | dishes{the}⟩"
+ ],
+ "Apples, oranges, and pears are fruits.": [
+  "⟨[Apples and oranges and pears] ‖ are \\ fruits⟩"
+ ],
+ "I came, I saw, I conquered.": [
+  "⟨I ‖ came⟩ ‖|‖ ⟨I ‖ saw⟩ ‖|‖ ⟨I ‖ conquered⟩"
+ ],
+ "The house that Jack built is old.": [
+  "⟨house{The, REL(⟨Jack ‖ built | that⟩)} ‖ is \\ old⟩"
+ ],
+ "What he said was true.": [
+  "⟨NC(⟨he ‖ said | What⟩) ‖ was \\ true⟩"
+ ],
+ "Who called?": [
+  "⟨Who ‖ called⟩"
+ ],
+ "Is he happy?": [
+  "⟨he ‖ Is \\ happy⟩"
+ ],
+ "Did you see the movie?": [
+  "⟨you ‖ Did see | movie{the}⟩"
+ ],
+ "The tall and handsome stranger smiled.": [
+  "⟨stranger{The, [tall and handsome]} ‖ smiled⟩"
+ ],
+ "We painted the barn red.": [
+  "⟨We ‖ painted | barn{the} \\OC red⟩"
+ ],
+ "The boy sitting on the bench is my cousin.": [
+  "⟨boy{The, PART(sitting{PP(on bench{the})})} ‖ is \\ cousin{my}⟩"
+ ],
+ "To err is human.": [
+  "⟨INF(to err) ‖ is \\ human⟩"
+ ],
+ "He seems happy.": [
+  "⟨He ‖ seems \\ happy⟩"
+ ],
+ "The cat is on the mat.": [
+  "⟨cat{The} ‖ is{PP(on mat{the})}⟩"
+ ],
+ "I enjoy reading books.": [
+  "⟨I ‖ enjoy | GER(reading | books)⟩"
+ ],
+ "She told me that she was leaving.": [
+  "⟨She ‖ told | me{REL(⟨she ‖ was leaving | that⟩)}⟩"
+ ],
+ "Although it was raining, we went for a walk.": [
+  "⟨we ‖ went{ADV(Although: ⟨it ‖ was raining⟩), PP(for walk{a})}⟩"
+ ],
+ "The dog barked loudly, and the cat ran away.": [
+  "⟨dog{The} ‖ barked{loudly}⟩ ‖and‖ ⟨cat{the} ‖ ran{away}⟩"
+ ],
+ "Let us go.": [
+  "⟨(you) ‖ Let | us \\OC INF(go)⟩"
+ ],
+ "The book I read was long.": [
+  "⟨book{The, REL(⟨I ‖ read | (that)⟩)} ‖ was \\ long⟩"
+ ],
+ "He is taller than his brother.": [
+  "⟨He ‖ is \\ taller{PP(than brother{his})}⟩"
+ ],
+ "Call me Ishmael.": [
+  "⟨(you) ‖ Call | me \\OC Ishmael⟩"
+ ],
+ "It was the best of times, it was the worst of times.": [
+  "⟨It ‖ was \\ best{the, PP(of times)}⟩ ‖‖ ⟨it ‖ was \\ worst{the, PP(of times)}⟩"
+ ],
+ "All happy families are alike.": [
+  "⟨families{All, happy} ‖ are \\ alike⟩"
+ ],
+ "The very old woman walked very slowly.": [
+  "⟨woman{The, old{very}} ‖ walked{slowly{very}}⟩"
+ ],
+ "I have been waiting for you.": [
+  "⟨I ‖ have been waiting{PP(for you)}⟩"
+ ],
+ "What a beautiful day it is!": [
+  "⟨it ‖ is \\ day{What, a, beautiful}⟩"
+ ],
+ "How old are you?": [
+  "⟨you ‖ are \\ old{How}⟩"
+ ],
+ "The book on the table belongs to my sister.": [
+  "⟨book{The, PP(on table{the})} ‖ belongs{PP(to sister{my})}⟩"
+ ],
+ "We the people of the United States, in order to form a more perfect union, establish this Constitution.": [
+  "⟨We(=people{the, PP(of United States{the})}) ‖ establish{INF(to form | union{a, perfect{more}})} | Constitution{this}⟩"
+ ],
+ "In the beginning God created the heaven and the earth.": [
+  "⟨God ‖ created{PP(In beginning{the})} | [heaven{the} and earth{the}]⟩"
+ ],
+ "Give me liberty or give me death!": [
+  "⟨(you) ‖ Give IO:me | liberty &or& give IO:me | death⟩"
+ ],
+ "The man in the car waved at us.": [
+  "⟨man{The, PP(in car{the})} ‖ waved{PP(at us)}⟩"
+ ],
+ "She made him a cake.": [
+  "⟨She ‖ made IO:him | cake{a}⟩"
+ ],
+ "Mary had a little lamb whose fleece was white as snow.": [
+  "⟨Mary ‖ had | lamb{a, little, REL(⟨fleece{whose} ‖ was{PP(as snow)} \\ white⟩)}⟩"
+ ],
+ "Hello world": [
+  "[INTJ:Hello] FRAG(world)"
+ ],
+ "the big red dog": [
+  "FRAG(dog{the, big, red})"
+ ],
+ "": [],
+ "   ": [],
+ "...": [
+  "FRAG(...)"
+ ],
+ "!!!": [
+  "FRAG(!!!)"
+ ],
+ "Hello.": [
+  "[INTJ:Hello] "
+ ],
+ "Run!": [
+  "⟨(you) ‖ Run⟩"
+ ],
+ "Yes.": [
+  "[INTJ:Yes] "
+ ],
+ "No, thank you.": [
+  "[INTJ:No] ⟨(you) ‖ thank | you⟩"
+ ],
+ "THE CAT SAT ON THE MAT.": [
+  "⟨CAT{THE} ‖ SAT{PP(ON MAT{THE})}⟩"
+ ],
+ "I think, therefore I am.": [
+  "⟨I ‖ think⟩ ‖‖ ⟨I ‖ am{therefore}⟩"
+ ],
+ "She said, \"I am coming home.\"": [
+  "⟨She ‖ said⟩ ‖‖ ⟨I ‖ am coming{home}⟩"
+ ],
+ "The children (all six of them) ran outside.": [
+  "⟨children{The} ‖ ran{outside}⟩"
+ ],
+ "We hold these truths to be self-evident.": [
+  "⟨We ‖ hold{INF(to be \\ self)} | truths{these} \\OC evident⟩"
+ ],
+ "It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.": [
+  "⟨It(=NC(that: ⟨man{a, single, PP(in possession{PP(of fortune{a, good})})} ‖ must be{PP(in want{PP(of wife{a})})}⟩)) ‖ is \\ truth{a, PART(acknowledged{universally})}⟩"
+ ],
+ "The only thing we have to fear is fear itself.": [
+  "⟨thing{The, only, REL(⟨we ‖ have | INF(to fear | (that))⟩)} ‖ is \\ fear(=itself)⟩"
+ ],
+ "Ask not what your country can do for you; ask what you can do for your country.": [
+  "⟨(you) ‖ Ask{not} | NC(⟨country{your} ‖ can do{PP(for you)} | what⟩)⟩ ‖‖ ⟨(you) ‖ ask | NC(⟨you ‖ can do{PP(for country{your})} | what⟩)⟩"
+ ],
+ "To be or not to be, that is the question.": [
+  "⟨that(=[INF(to be) or INF(to be{not})]) ‖ is \\ question{the}⟩"
+ ],
+ "Happy families are all alike; every unhappy family is unhappy in its own way.": [
+  "⟨families{Happy} ‖ are \\ alike{all}⟩ ‖‖ ⟨family{every, unhappy} ‖ is{PP(in way{its, own})} \\ unhappy⟩"
+ ],
+ "The sun had set, and the stars were shining brightly in the dark sky.": [
+  "⟨sun{The} ‖ had | set⟩ ‖and‖ ⟨stars{the} ‖ were shining{brightly, PP(in sky{the, dark})}⟩"
+ ],
+ "If you build it, he will come.": [
+  "⟨he ‖ will come{ADV(If: ⟨you ‖ build | it⟩)}⟩"
+ ],
+ "My dog, who is very lazy, sleeps all day.": [
+  "FRAG(dog{My, REL(⟨who ‖ is \\ lazy{very} && sleeps{PP(· day{all})}⟩)})"
+ ],
+ "The students who studied hard passed the exam easily.": [
+  "⟨students{The, REL(⟨who ‖ studied{hard}⟩)} ‖ passed{easily} | exam{the}⟩"
+ ],
+ "He ran quickly to the store, bought some milk, and came home.": [
+  "⟨He ‖ ran{quickly, PP(to store{the})} &and& bought | milk{some} &and& came{home}⟩"
+ ],
+ "Although she was tired, she finished her homework before dinner.": [
+  "⟨she ‖ finished{ADV(Although: ⟨she ‖ was tired⟩), PP(before dinner)} | homework{her}⟩"
+ ],
+ "Whoever wins the race will receive a prize.": [
+  "⟨NC(⟨Whoever ‖ wins | race{the}⟩) ‖ will receive | prize{a}⟩"
+ ],
+ "The teacher made the students rewrite their essays.": [
+  "⟨teacher{The} ‖ made | students{the} \\OC INF(rewrite | essays{their})⟩"
+ ],
+ "Can you tell me where the station is?": [
+  "⟨you ‖ Can tell IO:me | NC(⟨station{the} ‖ is{where}⟩)⟩"
+ ],
+ "Why did the chicken cross the road?": [
+  "⟨chicken{the} ‖ did cross{Why} | road{the}⟩"
+ ],
+ "Please sit down and be quiet.": [
+  "⟨(you) ‖ sit down{Please}⟩ ‖and‖ ⟨(you) ‖ be \\ quiet⟩"
+ ],
+ "Don't touch that!": [
+  "⟨(you) ‖ Do touch{not} | that⟩"
+ ],
+ "Running is good exercise for the heart.": [
+  "⟨GER(Running) ‖ is \\ exercise{good, PP(for heart{the})}⟩"
+ ],
+ "The boy who cried wolf was not believed.": [
+  "⟨boy{The, REL(⟨who ‖ cried | wolf⟩)} ‖ was believed{not}⟩"
+ ],
+ "Neither the teacher nor the students knew the answer.": [
+  "⟨[teacher{the} Neither…nor students{the}] ‖ knew | answer{the}⟩"
+ ],
+ "Both cats and dogs make good pets.": [
+  "⟨[cats Both…and dogs] ‖ make | pets{good}⟩"
+ ],
+ "I will go if it does not rain tomorrow.": [
+  "⟨I ‖ will go{ADV(if: ⟨it ‖ does rain{not, tomorrow}⟩)}⟩"
+ ],
+ "The book was written by a famous author in 1850.": [
+  "⟨book{The} ‖ was written{PP(by author{a, famous}), PP(in 1850)}⟩"
+ ],
+ "There is a house in New Orleans.": [
+  "⟨EX:There house{a, PP(in New Orleans)} ‖ is⟩"
+ ],
+ "A stitch in time saves nine.": [
+  "⟨stitch{A, PP(in time)} ‖ saves | nine⟩"
+ ],
+ "All that glitters is not gold.": [
+  "⟨All{REL(⟨that ‖ glitters⟩)} ‖ is{not} \\ gold⟩"
+ ],
+ "The quality of mercy is not strained.": [
+  "⟨quality{The, PP(of mercy)} ‖ is strained{not}⟩"
+ ],
+ "I wandered lonely as a cloud.": [
+  "⟨I ‖ wandered{PP(as cloud{a})} \\ lonely⟩"
+ ],
+ "The cat, the dog, and the mouse lived together peacefully.": [
+  "⟨[cat{The} and dog{the} and mouse{the}] ‖ lived{together, peacefully}⟩"
+ ],
+ "She is the girl whose bicycle was stolen.": [
+  "⟨She ‖ is \\ girl{the, REL(⟨bicycle{whose} ‖ was stolen⟩)}⟩"
+ ],
+ "This is the house in which I was born.": [
+  "⟨This ‖ is \\ house{the, PP(in NC(⟨I ‖ was born | which⟩))}⟩"
+ ],
+ "He is too tired to work.": [
+  "⟨He ‖ is tired{too, INF(to work)}⟩"
+ ],
+ "They watched the sun set over the mountains.": [
+  "⟨They ‖ watched{PP(over mountains{the})} | set{the, sun}⟩"
+ ],
+ "Having finished his work, he went home.": [
+  "⟨he{PART(Having finished | work{his})} ‖ went{home}⟩"
+ ],
+ "I saw a man with a telescope.": [
+  "⟨I ‖ saw | man{a, PP(with telescope{a})}⟩"
+ ],
+ "Time flies like an arrow.": [
+  "⟨flies{Time} ‖ like | arrow{an}⟩"
+ ],
+ "Colorless green ideas sleep furiously.": [
+  "⟨ideas{Colorless, green} ‖ sleep{furiously}⟩"
+ ],
+ "The horse raced past the barn fell.": [
+  "⟨horse{The, PART(raced{PP(past barn{the})})} ‖ fell⟩"
+ ],
+ "Buffalo buffalo buffalo.": [
+  "FRAG(buffalo{Buffalo, buffalo})"
+ ],
+ "lol idk what this is supposed to be": [
+  "[INTJ:lol LOOSE:what,this,is,supposed,INF(to be)] FRAG(idk)"
+ ],
+ "Supercalifragilisticexpialidocious!": [
+  "FRAG(Supercalifragilisticexpialidocious)"
+ ],
+ "John's sister's friend's car broke down yesterday.": [
+  "⟨car{friend's{sister's{John's}}} ‖ broke down{yesterday}⟩"
+ ],
+ "He gave the dog a bone, and the dog wagged its tail happily.": [
+  "⟨He ‖ gave IO:dog{the} | bone{a}⟩ ‖and‖ ⟨dog{the} ‖ wagged{happily} | tail{its}⟩"
+ ],
+ "When I was young, I lived in a small village near the sea, where my father worked as a fisherman.": [
+  "⟨I ‖ lived{ADV(When: ⟨I ‖ was \\ young⟩), PP(in village{a, small}), PP(near sea{the, REL(⟨father{my} ‖ worked{where, PP(as fisherman{a})}⟩)})}⟩"
+ ]
+}

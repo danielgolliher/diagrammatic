@@ -1,0 +1,15 @@
+{
+  "name": "diagrammatic",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node tests/run.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Reed-Kellogg sentence diagrams in the manner of a nineteenth-century grammar book",
+  "dependencies": {
+    "compromise": "^14.17.0"
+  },
+  "type": "module"
+}

@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><title>gallery</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>body{background:#f6eedb} .row{margin:10px 20px 30px;border-bottom:1px solid #ccc} .row p{font-size:14px;margin:0} .row svg{zoom:var(--z,1.6)}</style></head>
+<body><div id="g"></div>
+<script type="module">
+import { tagText } from '../js/tagger.js'
+import { parseSentence, resetIds, show } from '../js/parser.js'
+import { Draughtsman, toSVG } from '../js/layout.js'
+const ctx = document.createElement('canvas').getContext('2d')
+const measure = (s, size) => { ctx.font = `italic ${size}px "IM Fell English"`; return ctx.measureText(s).width }
+await document.fonts.load('italic 17px "IM Fell English"')
+const pen = new Draughtsman(measure)
+const q = new URLSearchParams(location.search)
+const list = q.get('s') ? q.get('s').split('|') : (await import('./sentences.mjs')).SPECIMENS
+const from = +(q.get('from')||0), to = +(q.get('to')||999)
+if (q.get('z')) document.documentElement.style.setProperty('--z', q.get('z'))
+for (const s of list.slice(from, to)) for (const sen of tagText(s)) {
+  resetIds(); const tree = parseSentence(sen.tokens, sen.end)
+  const d = document.createElement('div'); d.className='row'
+  let svg=''; try { svg = toSVG(pen.sentence(tree)).svg } catch(e) { svg = '<pre>'+e.stack+'</pre>' }
+  d.innerHTML = `<p>${sen.raw} &nbsp; <code>${show(tree).replace(/</g,'&lt;')}</code></p>` + svg
+  document.getElementById('g').appendChild(d)
+}
+</script></body></html>

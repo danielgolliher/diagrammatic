@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagrammatic</title>
+<meta name="description" content="Type any sentence and see it diagrammed in the Reed–Kellogg manner of a nineteenth-century grammar book.">
+<meta property="og:title" content="Diagrammatic">
+<meta property="og:description" content="Sentences diagrammed after the method of Reed & Kellogg, as in a nineteenth-century grammar book.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%23f3ead3'/%3E%3Cg stroke='%232b2016' stroke-width='3' stroke-linecap='round' fill='none'%3E%3Cpath d='M6 30h52M30 16v22M44 18l-6 12M14 30l8 14M40 30l7 12h11'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preload" href="fonts/fell-english-italic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/fell-english.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+<script>
+  try { const t = localStorage.getItem('diagrammatic-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="leaf">
+  <div class="running-head" aria-hidden="true">
+    <span class="rh-l">Diagrammatic.</span>
+    <span class="rh-c">The Analysis of Sentences.</span>
+    <span class="rh-r">iii</span>
+  </div>
+
+  <div class="theme-switch" role="group" aria-label="Choose a surface">
+    <button type="button" data-theme-choice="paper" aria-pressed="true">Paper</button>
+    <span class="sep">·</span>
+    <button type="button" data-theme-choice="slate" aria-pressed="false">Slate</button>
+  </div>
+
+  <header class="title-page">
+    <p class="kicker">Being an Apparatus for the</p>
+    <h1><span class="t1">Diagrammatic</span></h1>
+    <p class="subtitle">or, the Analysis of Sentences<br>made Visible to the Eye</p>
+    <div class="double-rule" aria-hidden="true"></div>
+    <p class="after">After the Method of Messrs. Reed &amp; Kellogg</p>
+    <svg class="fleuron" viewBox="0 0 120 24" aria-hidden="true">
+      <path d="M2 12h38M80 12h38" />
+      <path d="M60 3c-6 0-9 5-9 9s3 9 9 9 9-5 9-9-3-9-9-9zm0 4c3 0 5 2 5 5s-2 5-5 5-5-2-5-5 2-5 5-5z" class="fill"/>
+      <path d="M42 12c3-5 6-6 9-4M78 12c-3 5-6 6-9 4M42 12c3 5 6 6 9 4M78 12c-3-5-6-6-9-4" />
+      <circle cx="36" cy="12" r="1.8" class="fill"/><circle cx="84" cy="12" r="1.8" class="fill"/>
+    </svg>
+  </header>
+
+  <section class="lesson" aria-labelledby="lesson-h">
+    <h2 id="lesson-h"><span class="rubric">Lesson I.</span> Write a Sentence.</h2>
+    <p class="direction"><span class="manicule" aria-hidden="true">☞</span> Write any sentence below — or a whole paragraph of them — and the apparatus will draw each one out, subject from predicate, as the grammars of the last century taught it.</p>
+    <form id="form" autocomplete="off">
+      <label for="input" class="visually-hidden">Your sentence</label>
+      <textarea id="input" rows="2" spellcheck="true" placeholder="The old man walked slowly to the village.">The old man walked slowly to the village.</textarea>
+      <div class="actions">
+        <button type="submit" class="btn primary">Diagram it</button>
+        <button type="button" class="btn" id="random">A specimen, at random</button>
+      </div>
+    </form>
+  </section>
+
+  <section id="plates" aria-live="polite"></section>
+
+  <section class="exercises" aria-labelledby="ex-h">
+    <h2 id="ex-h"><span class="rubric">Lesson II.</span> Exercises for Practice.</h2>
+    <p class="direction">Choose any of the following to see it diagrammed.</p>
+    <div id="exercise-list" class="exercise-list"></div>
+  </section>
+
+  <section class="key" aria-labelledby="key-h">
+    <h2 id="key-h"><span class="rubric">Lesson III.</span> Key to the Lines.</h2>
+    <p class="direction">Each kind of word has its own place and each kind of line its own meaning. The specimens below are drawn by the same apparatus.</p>
+    <div id="key-grid" class="key-grid"></div>
+  </section>
+
+  <footer class="colophon">
+    <div class="double-rule" aria-hidden="true"></div>
+    <p><span class="rubric sc">Colophon.</span> The method of diagramming is that of Alonzo Reed and Brainerd Kellogg, whose <i>Higher Lessons in English</i> (1877) taught a century of schoolchildren to draw a sentence. The words are set in the Fell Types, cut for Bishop John Fell of Oxford in the seventeenth century and revived by Igino Marini.</p>
+    <p>The apparatus parses English by rule rather than by understanding, and it will sometimes err. Where it does, open the <i>Parsing</i> beneath a figure and correct the part of speech. The sentence travels in the page's address, so any figure can be shared.</p>
+    <p class="imprint">Printed for the Curious · MMXXVI · <a href="https://github.com/danielgolliher/diagrammatic">The source</a></p>
+  </footer>
+</div>
+
+<noscript><p class="noscript">This apparatus needs JavaScript to draw its figures.</p></noscript>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
