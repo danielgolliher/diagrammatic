@@ -199,7 +199,7 @@ export class Draughtsman {
       f.path([['M', sx, sy], ['L', -r * COS, -r * SIN], ['Q', 0, 0, r, 0], ['L', W, 0]], 'ln', [[sx, sy], [0, 0], [W, 0]]);
       const [a, b] = splitWord(text, opts.leadSplit);
       if (a) this.textSlant(f, sx, sy, a, Math.max(S.pad - 4, L - this.tw(a) - 15), {});
-      if (b) this.textH(f, 5, -6, b, {});
+      if (b) this.textH(f, a ? 5 : 9, -6, b, {});
       f.attach = { x: sx, y: sy };
     } else if (shape === 'step') {
       // the gerund's stair-step: the word steps down with its line
@@ -333,10 +333,10 @@ export class Draughtsman {
     return f;
   }
 
-  slantPP(prepText, obj, node) {
+  slantPP(prepText, obj, node, minLen = 0) {
     const S = this.S;
     const tw = prepText ? this.tw(prepText) : 0;
-    let L = Math.max(S.minSlant + 8, tw + 2 * S.pad + 4);
+    let L = Math.max(S.minSlant + 8, tw + 2 * S.pad + 4, minLen);
     let objSeg = obj ? this.slot(obj, { forkLeft: true }) : this.emptyLine(34);
     // lengthen the slant until the object's own furniture clears it
     for (let guard = 0; guard < 40; guard++) {
@@ -384,7 +384,7 @@ export class Draughtsman {
       const slantOnly = new Fig(); slantOnly.segBoxes(0, 0, bx - 6 * COS, by - 6 * SIN, 1);
       if (label) this.textSlant(slantOnly, 0, 0, label, S.pad, {});
       const probe = cloneFig(pred); probe.shift(bx, by);
-      probe.boxes = probe.boxes.filter(b => !(b.y0 > by - 2.5 && b.y1 < by + 2.5));
+      probe.boxes = probe.boxes.filter(b => !(b.y0 > by - 2.5 && b.y1 < by + 2.5) && Math.hypot((b.x0 + b.x1) / 2 - bx, (b.y0 + b.y1) / 2 - by) > 16);
       if (guard < 39 && collides(slantOnly, probe, 3)) { L += 8; continue; }
       const f = new Fig();
       f.line(0, 0, bx, by, 'ln');
@@ -396,14 +396,17 @@ export class Draughtsman {
     return new Fig();
   }
 
-  bentParticiple(part) {
+  bentParticiple(part, whole = false) {
     const S = this.S;
-    const [a] = splitWord(part.pred.verb.text, 0.45);
-    const L = Math.max(S.minSlant + 6, this.tw(a) + S.pad + 16);
-    const pred = this.predicate(part.pred, { verbShape: 'bent', leadLen: L, leadSplit: 0.45 });
+    const frac = whole ? 0 : 0.45;
+    const [a] = splitWord(part.pred.verb.text, frac);
+    const L = whole ? 52 : Math.max(S.minSlant + 6, this.tw(a) + S.pad + 16);
+    const pred = this.predicate(part.pred, { verbShape: 'bent', leadLen: L, leadSplit: frac });
     // the predicate's verb line starts at (0,0); its slant begins up and to the left
     pred.shift(L * COS, L * SIN);
     pred.anchors[part.id] = { x: L * COS / 2, y: L * SIN / 2 };
+    pred.slantLen = L;
+    pred.slantText = a ? this.tw(a) + 4 : 0;
     return pred;
   }
 
@@ -413,6 +416,7 @@ export class Draughtsman {
     const cw = conj ? this.tw(conj, S.small) : 0;
     const words = c.items;
     const maxTw = Math.max(...words.map(w => (w.kind === 'word' ? this.tw(w.text) : 40)));
+    const maxPrep = Math.max(0, ...words.map(w => (w.kind === 'pp' && w.prep ? this.tw(w.prep.text) : 0)));
     let depthAlong = S.pad + maxTw + 10;           // where the dotted rung crosses
     const figs = words.map(w => {
       if (w.kind === 'word' && !(w.mods || []).length) {
@@ -425,12 +429,15 @@ export class Draughtsman {
         f.anchors['top:' + w.id] = { x: mid * COS + (this.asc + 6) * UPX, y: mid * SIN + (this.asc + 6) * UPY };
         return f;
       }
+      if (w.kind === 'participle') return this.bentParticiple(w, true);
+      // phrases get slants long enough for the dotted rung to pass between preposition and object
+      if (w.kind === 'pp') return this.slantPP(w.prep ? w.prep.text : '', w.obj, w, S.pad + maxPrep + 34);
       return this.hang(w);
     });
     // phrases joined by a conjunction: the rung crosses their slants below the prepositions
     if (words.some(w => w.kind !== 'word')) {
       const below = Math.max(...figs.map(g => S.pad + (g.slantText || 0) + 6));
-      const room = Math.min(...figs.map(g => (g.slantLen || depthAlong + 16) - 8));
+      const room = Math.min(...figs.map(g => (g.slantLen || depthAlong + 16) - (g.slantText != null && g.slantLen ? 24 : 8)));
       depthAlong = Math.min(Math.max(below, 18), room);
     }
     let acc = null, xs = [];
@@ -862,9 +869,26 @@ function splitWord(w, frac = 0.5) {
   if (w.length < 4) return [w, ''];
   const lw = w.toLowerCase();
   const vowels = /[aeiouy]/;
+  if (frac === 0) return ['', w];
   for (const suf of ['ing', 'ed', 'en', 'est', 'er', 'ly', 'ness', 'ment', 'tion']) {
+    // a bare "-ed" or "-en" makes a poor second half: break at a syllable instead
+    if ((suf === 'ed' || suf === 'en') && lw.endsWith(suf) && !/(.)\1(ed|en)$/.test(lw)) {
+      // after t or d, "-ed" is a syllable of its own: paint-ed, grant-ed
+      if (suf === 'ed' && /[td]ed$/.test(lw) && lw.length <= 7) return [w.slice(0, -2), w.slice(-2)];
+      const target = w.length * frac;
+      let best = -1;
+      for (let j = 2; j <= w.length - 3; j++) {
+        if (suf === 'ed' && /^[^aeiouy]+ed$/.test(lw.slice(j))) continue;   // a silent "-ed" never stands alone: re-tained, not retai-ned
+        const vc = /[aeiouy]/.test(lw[j - 1]) && !/[aeiouy]/.test(lw[j]) && /[aeiouy]/.test(lw[j + 1]);      // V|CV
+        const cc = !/[aeiouy]/.test(lw[j - 1]) && !/[aeiouy]/.test(lw[j]) && /[aeiouy]/.test(lw[j - 2] || '') && /[aeiouy]/.test(lw[j + 1]); // VC|CV
+        const onset = /[aeiouy]/.test(lw[j - 1]) && /^(str|scr|spr|spl|shr|thr|sc|st|sp|sk|sl|sm|sn|sw|pr|br|tr|dr|cr|gr|fr|pl|bl|cl|fl|gl|sh|ch|th|wh|ph|qu)[aeiouy]/.test(lw.slice(j)); // V|CCV: pre-scribed
+        if ((vc || cc || onset) && (best < 0 || Math.abs(j - target) < Math.abs(best - target))) best = j;
+      }
+      if (best > 0) return [w.slice(0, best), w.slice(best)];
+    }
     if (lw.endsWith(suf) && lw.length - suf.length >= 3) {
       let k = lw.length - suf.length;
+      if (suf === 'ed' && /(ss|ll|ff|zz)ed$/.test(lw)) return [w.slice(0, k), w.slice(k)];     // cross-ed, fill-ed
       // a doubled consonant splits between the pair: swim-ming, writ-ten
       if (lw[k - 1] === lw[k - 2] && !vowels.test(lw[k - 1])) k -= 1;
       // a consonant cluster before the suffix stays with the stem

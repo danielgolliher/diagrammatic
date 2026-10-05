@@ -479,6 +479,12 @@
  "She said that the dog which barked was hers.": [
   "⟨She ‖ said | NC(that: ⟨dog{the, REL(⟨which ‖ barked⟩)} ‖ was \\ hers⟩)⟩"
  ],
+ "Four score and seven years ago our fathers brought forth on this continent, a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal.": [
+  "⟨fathers{our} ‖ brought{ago{PP(· [score{Four} and years{seven}])}, forth, PP(on continent{this})} | nation{a, new, [PART(conceived{PP(in Liberty)}) and PART(dedicated{PP(to proposition(=NC(that: ⟨men{all} ‖ are created \\ equal⟩)){the})})]}⟩"
+ ],
+ "Congress shall make no law respecting an establishment of religion, or prohibiting the free exercise thereof; or abridging the freedom of speech, or of the press; or the right of the people peaceably to assemble, and to petition the Government for a redress of grievances.": [
+  "⟨Congress ‖ shall make | law{no, [PART(respecting | establishment{an, PP(of religion)}) or PART(prohibiting | exercise{the, free, thereof}) or PART(abridging | [freedom{the, [PP(of speech) or PP(of press{the})]} or right{the, PP(of people{the}), INF(to assemble{peaceably} &and& petition{PP(for redress{a, PP(of grievances)})} | Government{the})}])]}⟩"
+ ],
  "": [],
  "   ": [],
  "...": [

@@ -46,6 +46,14 @@ const CLAUSE_VERBS = set(`say think know believe hope wish feel realize realise 
   agree announce report reply answer write read dream imagine pretend prove recognize recognise reveal confirm assume conclude
   declare determine ensure figure hold indicate maintain observe predict recall reckon regret state suspect swear teach warn
   worry demand see judge trust bet care`);
+// verbs that rarely take a direct object
+const INTRANSITIVE = set(`live lives lived go goes went come came arrive sit sat stand stood lie lay die died sleep slept walk walked
+  run ran work worked wait waited stay stayed remain rise rose fall fell happen happened exist existed appear belong belonged
+  dwell dwelt travel travelled traveled journey journeyed`);
+// nouns that a "that"-clause completes rather than modifies: "the proposition that all men are created equal"
+const CLAUSE_NOUNS = set(`proposition fact idea belief hope news notion claim possibility assurance conviction evidence truth view doctrine
+  principle rumour rumor sense statement theory thought assumption conclusion decision feeling suggestion promise certainty
+  knowledge proof doubt fear wish condition hypothesis report understanding argument opinion faith confidence`);
 const SAYING_VERBS = set('say declare think believe suppose hope fear wish swear admit confess guess reckon trust imagine assure protest vow promise grant own reply answer cry exclaim whisper write');
 const IO_VERBS = set(`give send tell show buy bring teach offer hand lend pass write sell pay ask read make get find leave owe promise grant
   award cook bake build sing throw toss feed serve deny allow save fetch order reserve wish bid cost lend mail email`);
@@ -1019,6 +1027,14 @@ export class Parser {
         const pp = this.parsePP();
         if (pp && pp.kind === 'pp') {
           if (!pp.obj && !pp.stranded) { verb.mods.push(W(pp.prep.text, 'adverb')); continue; }
+          const ap = pp.obj && pp.obj.kind === 'word' && pp.obj.appos;
+          if (ap && ap.kind === 'word' && !pred.comp && !pred.linking && !pred.passive && !INTRANSITIVE.has(lemma) &&
+            ap.mods[0] && ap.mods[0].kind === 'word' && /^an?$/i.test(ap.mods[0].text)) {
+            delete pp.obj.appos;
+            verb.mods.push(pp);
+            pred.comp = ap; pred.compType = 'do';
+            continue;
+          }
           verb.mods.push(pp.obj ? this.coordinatePP(pp, !pred.nested) : pp);
           continue;
         }
@@ -1066,6 +1082,15 @@ export class Parser {
             ncs.push(nc);
           }
           if (ncs.length) { pred.comp.appos = ncs.length === 1 ? ncs[0] : { kind: 'compound', id: nid(), items: ncs, conj: '' }; continue; }
+          this.i = save;
+        }
+        // "a new nation, conceived in Liberty, and dedicated to…": participial phrases on the object
+        if (pred.compType === 'do' && pred.comp && pred.comp.kind === 'word' && nx.pos === 'VERB' && /pp|pastpp/.test(nx.form || '') &&
+          !this.npStart(2) && !pred.nested) {
+          const save = this.i;
+          this.i++;
+          const part = this.coordinateParticiples(this.parseParticiple());
+          if (part) { pred.comp.mods.push(part); continue; }
           this.i = save;
         }
         // "a Heaven of Hell, a Hell of Heaven": a second object set after a comma at the end
@@ -1170,6 +1195,28 @@ export class Parser {
       this.i = save;
     }
     pred.comp = np1; pred.compType = 'do';
+  }
+
+  // "respecting an establishment of religion, or prohibiting the free exercise thereof; or abridging…"
+  coordinateParticiples(part) {
+    if (!part) return part;
+    const items = [part];
+    let conj = null;
+    const form = /ing$/i.test(part.pred.verb.text) ? 'ing' : 'pp';
+    for (let guard = 0; guard < 6; guard++) {
+      const save = this.i;
+      if (this.isPunct() && /^[,;]$/.test(this.peek().text)) this.i++;
+      const c = this.peek();
+      const v = this.peek(1);
+      if (c.pos === 'CCONJ' && /^(and|or|nor)$/.test(c.lower) && v.pos === 'VERB' && (form === 'ing' ? v.form === 'ing' : /pp|pastpp/.test(v.form || ''))) {
+        this.i++;
+        const p2 = this.parseParticiple();
+        if (p2) { items.push(p2); conj = c.text; continue; }
+      }
+      this.i = save;
+      break;
+    }
+    return items.length > 1 ? { kind: 'compound', id: nid(), items, conj: conj || 'and' } : part;
   }
 
   // "in one supreme Court, and in such inferior Courts", "by the United States or by any State"
@@ -1305,6 +1352,7 @@ export class Parser {
       const s2 = this.i;
       let comma = false;
       if (this.isComma()) { this.i++; comma = true; }
+      else if (this.isPunct() && this.peek().text === ';' && this.peek(1).pos === 'CCONJ' && ctx === 'obj' && this.npStart(2) && !this.npThenFinite(2)) { this.i++; comma = true; }
       const t = this.peek();
       if (t.pos === 'CCONJ' && ['and', 'or', 'nor', 'but'].includes(t.lower) && (t.lower !== 'but' || corr === null && false)) {
         this.i++;
@@ -1313,7 +1361,8 @@ export class Parser {
         if (this.npStart() || this.peek().pos === 'TO') {
           const np = this.peek().pos === 'TO' && first.kind === 'infinitive' ? this.parseInfinitive() : this.parseNP(ctx);
           if (np && negInf && np.kind === 'infinitive') np.pred.verb.mods.unshift(negInf);
-          const okCoord = np && !(ctx !== 'subj' && ctx !== 'probe' && this.verbStart() && !this.isEnd()) && !(ctx === 'subj' && false);
+          const mismatch = np && ((np.kind === 'gerund') !== (first.kind === 'gerund'));
+          const okCoord = np && !mismatch && !(ctx !== 'subj' && ctx !== 'probe' && this.verbStart() && !this.isEnd()) && !(ctx === 'subj' && false);
           if (np && okCoord) { items.push(np); conj = t.text; if (!this.isComma() && this.peek().pos !== 'CCONJ') break; continue; }
         }
         this.i = s2;
@@ -1520,7 +1569,7 @@ export class Parser {
       if (t.pos === 'PREP' && this.attachToNoun(t, ctx, node)) {
         const save = this.i;
         const pp = this.parsePP();
-        if (pp && pp.kind === 'pp' && pp.obj) { node.mods.push(pp); continue; }
+        if (pp && pp.kind === 'pp' && pp.obj) { node.mods.push(this.coordinatePP(pp)); continue; }
         this.i = save;
         break;
       }
@@ -1534,13 +1583,27 @@ export class Parser {
         if (cl) { this.fillGap(cl, rel, 'nominal'); node.mods.push({ kind: 'relclause', id: nid(), clause: cl, link: rel.id }); continue; }
         this.i = save;
       }
+      if (t.lower === 'that' && isNoun && !node.appos && CLAUSE_NOUNS.has(node.text.toLowerCase()) && this.clauseAhead(1)) {
+        const save = this.i;
+        const nc = this.parseNounClause();
+        if (nc && nc.kind === 'nounclause') { node.appos = nc; continue; }
+        this.i = save;
+      }
       // relative clause
       const relWord = ['who', 'whom', 'whose', 'which'].includes(t.lower) || (t.lower === 'that' && (t.pos === 'REL' || isNoun && (this.verbStart(1) || this.npThenFinite(1)))) ||
         (t.lower === 'where' && isNoun && this.clauseAhead(1)) || (t.lower === 'when' && isNoun && TIME_NOUNS.has(node.text.toLowerCase()) && this.clauseAhead(1)) ||
         (t.lower === 'why' && node.text.toLowerCase() === 'reason');
       if (relWord && t.pos !== 'WH' || relWord && ['who', 'whom', 'whose', 'which', 'where', 'when', 'why'].includes(t.lower) && (this.peek(-1).pos === 'NOUN' || this.peek(-1).pos === 'PROPN' || this.peek(-1).pos === 'PRON' || this.peek(-1).text === ',')) {
+        const save = this.i;
         const rc = this.parseRelClause(node);
+        // "that" + a clause with no gap to fill is a clause in apposition, not a relative clause
+        if (rc && t.lower === 'that' && rc.clause.floating && rc.clause.floating.id === rc.link && !node.appos) {
+          delete rc.clause.floating;
+          node.appos = { kind: 'nounclause', id: nid(), connector: W(t, 'conjunction'), clause: rc.clause };
+          continue;
+        }
         if (rc) { node.mods.push(rc); continue; }
+        this.i = save;
       }
       if (t.pos === 'PREP' && ['which', 'whom', 'whose'].includes(this.peek(1).lower)) {
         const rc = this.parseRelClause(node);
@@ -1574,7 +1637,7 @@ export class Parser {
         if (!(ctx === 'subj' && t.form === 'ing' && false)) {
           const save = this.i;
           const part = this.parseParticiple();
-          if (part) { node.mods.push(part); continue; }
+          if (part) { node.mods.push(this.coordinateParticiples(part)); continue; }
           this.i = save;
         }
       }
@@ -1583,6 +1646,15 @@ export class Parser {
         const adv = W(this.next(), 'adverb');
         const part = this.parseParticiple();
         if (part) { verbWord(part.pred).mods.unshift(adv); node.mods.push(part); continue; }
+        this.i = save;
+      }
+      if (t.pos === 'ADV' && /^(thereof|therein|thereto|hereof|whereof)$/.test(t.lower) && ctx !== 'probe') { node.mods.push(W(this.next(), 'adverb')); continue; }
+      // "the right of the people peaceably to assemble": an adverb before an infinitive that modifies the noun
+      if (t.pos === 'ADV' && this.peek(1).pos === 'TO' && this.peek(2).pos === 'VERB' && INF_NOUNS.has(node.text.toLowerCase()) && ctx !== 'probe') {
+        const save = this.i;
+        const adv = W(this.next(), 'adverb');
+        const inf = this.parseInfinitive();
+        if (inf) { verbWord(inf.pred).mods.unshift(adv); node.mods.push(inf); continue; }
         this.i = save;
       }
       // adjectival infinitive: "time to go", "nothing to fear"
@@ -1719,12 +1791,14 @@ export class Parser {
   moreInfinitives(inf) {
     const preds = [inf.pred];
     let conj = null;
+    let repeatedTo = false;      // "to assemble, and to petition": two infinitives, never one shared object
     const verbAhead = () => this.t.slice(this.i, this.i + 60).some((x, k, a) => x.pos === 'CCONJ' && a[k + 1] && (a[k + 1].pos === 'VERB' || canBeVerb(a[k + 1])));
     for (let guard = 0; guard < 10; guard++) {
       const save = this.i;
       let comma = false, c = null;
       if (this.isComma()) { this.i++; comma = true; }
       if (this.peek().pos === 'CCONJ' && /^(and|or|nor)$/.test(this.peek().lower)) c = this.next().text;
+      if (c && this.peek().pos === 'TO' && this.peek(1).pos === 'VERB') { this.i++; repeatedTo = true; }
       const v = this.peek();
       const verbish = (v.pos === 'VERB' && v.form !== 'ing' && v.form !== 'pres3') ||
         (c && v.pos === 'NOUN' && !/s$/.test(v.lower) && !preds[0].comp && this.npStart(1)) ||
@@ -1741,7 +1815,7 @@ export class Parser {
     if (preds.length < 2) return;
     const last = preds[preds.length - 1];
     // a shared object: "to deny or disparage others"
-    if (preds.slice(0, -1).every(p => !p.comp && !p.io && p.verb.kind === 'word' && !p.verb.mods.length) && last.comp && last.verb.kind === 'word') {
+    if (!repeatedTo && preds.slice(0, -1).every(p => !p.comp && !p.io && p.verb.kind === 'word' && !p.verb.mods.length) && last.comp && last.verb.kind === 'word') {
       inf.pred = { ...last, verb: { kind: 'compound', id: nid(), items: preds.map(p => p.verb), conj: conj || 'and' } };
       return;
     }

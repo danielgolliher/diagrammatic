@@ -158,4 +158,6 @@ export const SPECIMENS = [
  "I know that the man who called is here.",
  "I think the book that you lent me is lost.",
  "She said that the dog which barked was hers.",
+ "Four score and seven years ago our fathers brought forth on this continent, a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal.",
+ "Congress shall make no law respecting an establishment of religion, or prohibiting the free exercise thereof; or abridging the freedom of speech, or of the press; or the right of the people peaceably to assemble, and to petition the Government for a redress of grievances.",
 ]
